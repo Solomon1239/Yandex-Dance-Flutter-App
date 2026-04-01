@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "647052399772",
+    "project_id": "flutter-yandex-dance-84fc4",
+    "storage_bucket": "flutter-yandex-dance-84fc4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:647052399772:android:496073dfd2bbc69c034959",
+        "android_client_info": {
+          "package_name": "com.example.yandex_dance"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "647052399772-i0irlran0cf43lm8lqo4mdvl0qs1vv1k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnHLSrfWYRTUID_Wz9Kwh7cwn2bBQZF2s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "647052399772-i0irlran0cf43lm8lqo4mdvl0qs1vv1k.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
