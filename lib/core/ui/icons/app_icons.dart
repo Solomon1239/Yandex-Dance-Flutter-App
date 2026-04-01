@@ -1,0 +1,28 @@
+class AppIcons {
+  AppIcons._();
+  static const apple = "assets/icons/apple.svg";
+  static const appleColored = "assets/icons/apple_colored.svg";
+  static const arrow = "assets/icons/arrow.svg";
+  static const back = "assets/icons/back.svg";
+  static const calendar = "assets/icons/calendar.svg";
+  static const clock = "assets/icons/clock.svg";
+  static const create = "assets/icons/create.svg";
+  static const edit = "assets/icons/edit.svg";
+  static const filter = "assets/icons/filter.svg";
+  static const friends = "assets/icons/friends.svg";
+  static const google = "assets/icons/google.svg";
+  static const googleColored = "assets/icons/google_colored.svg";
+  static const home = "assets/icons/home.svg";
+  static const list = "assets/icons/list.svg";
+  static const lock = "assets/icons/lock.svg";
+  static const mail = "assets/icons/mail.svg";
+  static const map = "assets/icons/map.svg";
+  static const pin = "assets/icons/pin.svg";
+  static const play = "assets/icons/play.svg";
+  static const search = "assets/icons/search.svg";
+  static const settings = "assets/icons/settings.svg";
+  static const star = "assets/icons/star.svg";
+  static const trending = "assets/icons/trending.svg";
+  static const upload = "assets/icons/upload.svg";
+  static const user = "assets/icons/user.svg";
+}
