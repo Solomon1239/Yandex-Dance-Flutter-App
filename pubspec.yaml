@@ -41,7 +41,7 @@ dependencies:
   google_sign_in: ^7.2.0
   sign_in_with_apple: ^7.0.1
   get_it: ^9.2.1
-  go_router: ^17.0.0
+  go_router: ^17.1.0
   yx_state: ^1.0.0
   yx_state_flutter: ^1.0.0
   equatable: ^2.0.8
