@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
+import 'package:yandex_dance/core/ui/widgets/buttons/base_button.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 
 class InputDebugPage extends StatefulWidget {
