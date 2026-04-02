@@ -1,9 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/base_button.dart';
+import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
+import 'package:yandex_dance/core/ui/widgets/switcher/switcher.dart';
 
 class InputDebugPage extends StatefulWidget {
   const InputDebugPage({super.key});
@@ -60,6 +63,34 @@ class _InputDebugPageState extends State<InputDebugPage> {
               nextFocusNode: _emailFocusNode,
             ),
             const SizedBox(height: 12),
+
+            CupertinoSlidingSegmentedControl<int>(
+              groupValue: 0,
+              children: {0: Text('Войти'), 1: Text('Регистрация')},
+              onValueChanged: (value) {},
+            ),
+            AppSegmentedControl(
+              expandItems: true,
+              height: 50,
+              horizontalPadding: 0,
+              itemPadding: EdgeInsets.symmetric(horizontal: 0),
+              items: [
+                Text('Войти', style: AppTextTheme.body3Regular20pt),
+                Text('Регистрация', style: AppTextTheme.body3Regular20pt),
+              ],
+              onChanged: (index) {},
+            ),
+            SizedBox(height: 20),
+            AppSegmentedControl(
+              height: 30,
+              itemPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              items: [
+                SvgPicture.asset(AppIcons.list, width: 20),
+                SvgPicture.asset(AppIcons.map, width: 20),
+              ],
+              onChanged: (index) {},
+              horizontalPadding: 0,
+            ),
           ],
         ),
       ),
