@@ -11,6 +11,9 @@ class EventCard extends StatelessWidget {
     this.styleLabel = 'Стиль',
     this.dateLabel = 'Дата и время',
     this.locationLabel = 'Локация',
+    this.authorLabel = 'Вы',
+    this.participantsLabel = '0/0',
+    this.authorAvatarImage,
     this.coverImage,
     this.onTap,
   });
@@ -19,6 +22,9 @@ class EventCard extends StatelessWidget {
   final String styleLabel;
   final String dateLabel;
   final String locationLabel;
+  final String authorLabel;
+  final String participantsLabel;
+  final ImageProvider<Object>? authorAvatarImage;
   final ImageProvider<Object>? coverImage;
   final VoidCallback? onTap;
 
@@ -33,7 +39,7 @@ class EventCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFF101010),
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
             boxShadow: const [
               BoxShadow(
                 color: Color(0x40000000),
@@ -65,6 +71,14 @@ class EventCard extends StatelessWidget {
                     _MetaRow(iconPath: AppIcons.calendar, text: dateLabel),
                     const SizedBox(height: 12),
                     _MetaRow(iconPath: AppIcons.pin, text: locationLabel),
+                    const SizedBox(height: 12),
+                    Divider(color: Colors.white.withValues(alpha: 0.1)),
+                    const SizedBox(height: 12),
+                    _BottomRow(
+                      authorLabel: authorLabel,
+                      participantsLabel: participantsLabel,
+                      authorAvatarImage: authorAvatarImage,
+                    ),
                   ],
                 ),
               ),
@@ -194,6 +208,86 @@ class _MetaRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _BottomRow extends StatelessWidget {
+  const _BottomRow({
+    required this.authorLabel,
+    required this.participantsLabel,
+    this.authorAvatarImage,
+  });
+
+  final String authorLabel;
+  final String participantsLabel;
+  final ImageProvider<Object>? authorAvatarImage;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _AuthorAvatar(authorAvatarImage: authorAvatarImage),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            authorLabel,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: AppColors.gray0,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        SvgIcon(AppIcons.friends, size: 22, color: const Color(0xFF12C7F5)),
+        const SizedBox(width: 10),
+        Text(
+          participantsLabel,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: AppColors.gray0,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AuthorAvatar extends StatelessWidget {
+  const _AuthorAvatar({this.authorAvatarImage});
+
+  final ImageProvider<Object>? authorAvatarImage;
+
+  @override
+  Widget build(BuildContext context) {
+    if (authorAvatarImage != null) {
+      return Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          image: DecorationImage(
+            image: authorAvatarImage!,
+            fit: BoxFit.cover,
+            onError: (_, __) {},
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: 44,
+      height: 44,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.purple500, AppColors.pink500],
+        ),
+      ),
+      child: const Center(
+        child: SvgIcon(AppIcons.star, size: 20, color: AppColors.gray0),
+      ),
     );
   }
 }

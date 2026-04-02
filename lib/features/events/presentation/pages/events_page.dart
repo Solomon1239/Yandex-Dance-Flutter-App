@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
+import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/features/events/presentation/widgets/event_card.dart';
 
 final _mockEvents = [
@@ -9,6 +11,11 @@ final _mockEvents = [
     styleLabel: 'Hip-Hop',
     dateLabel: '5 апреля, 19:00',
     locationLabel: 'Dance Space, Москва',
+    authorLabel: 'Вы',
+    participantsLabel: '5/20',
+    authorAvatarImage: NetworkImage(
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
+    ),
     coverImage: NetworkImage(
       'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80',
     ),
@@ -18,6 +25,11 @@ final _mockEvents = [
     styleLabel: 'House',
     dateLabel: '7 апреля, 20:30',
     locationLabel: 'Studio 21, Москва',
+    authorLabel: 'Mila',
+    participantsLabel: '11/18',
+    authorAvatarImage: NetworkImage(
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=300&q=80',
+    ),
     coverImage: NetworkImage(
       'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=1200&q=80',
     ),
@@ -27,6 +39,11 @@ final _mockEvents = [
     styleLabel: 'Jazz Funk',
     dateLabel: '9 апреля, 18:00',
     locationLabel: 'Vibe Room, Москва',
+    authorLabel: 'Alex',
+    participantsLabel: '8/16',
+    authorAvatarImage: NetworkImage(
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
+    ),
     coverImage: NetworkImage(
       'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?auto=format&fit=crop&w=1200&q=80',
     ),
@@ -36,6 +53,8 @@ final _mockEvents = [
     styleLabel: 'Breaking',
     dateLabel: '12 апреля, 17:30',
     locationLabel: 'Cypher Hall, Москва',
+    authorLabel: 'Niko',
+    participantsLabel: '5/20',
   ),
 ];
 
@@ -48,6 +67,8 @@ class EventsPage extends StatefulWidget {
 
 class _EventsPageState extends State<EventsPage> {
   late final TextEditingController _searchEventsController;
+  final _searchEventsFocusNode = FocusNode();
+  bool _touched = false;
   _EventsViewMode _viewMode = _EventsViewMode.list;
   final Set<String> _selectedGenres = {'Все'};
 
@@ -105,23 +126,20 @@ class _EventsPageState extends State<EventsPage> {
       appBar: AppBar(title: const Text("Все мероприятия")),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             children: [
-              TextField(
-                controller: _searchEventsController,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  label: const Text("Поиск..."),
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(8),
-                    child: SvgIcon(AppIcons.search, size: 16),
-                  ),
-                  prefixIconConstraints: const BoxConstraints(
-                    minWidth: 60,
-                    minHeight: 40,
-                  ),
-                ),
+              AppTextField(
+                label: 'Simple',
+                hint: 'Найти',
+                state: InputState.initial,
+                prefixIcon: AppIcons.search,
+                contoller: _searchEventsController,
+                touched: _touched,
+                focusNode: _searchEventsFocusNode,
+                onChanged: (_) => setState(() => _touched = true),
+                onFocusChange: () => setState(() => _touched = true),
+                onUnfocus: () => setState(() => _touched = true),
               ),
               const SizedBox(height: 16),
               Row(
@@ -151,24 +169,11 @@ class _EventsPageState extends State<EventsPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  OutlinedButton.icon(
-                    onPressed: _openFiltersModal,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 14,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
-                    icon: SvgIcon(
-                      AppIcons.filter,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
-                    label: const Text('Фильтры'),
-                  ),
+                  // BaseButton(
+                  //   text: 'Фильтры',
+                  //   prefixIcon: const SvgIcon(AppIcons.filter, size: 20),
+                  //   onPressed: _openFiltersModal,
+                  // ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -244,6 +249,9 @@ class _MockEvent {
     required this.styleLabel,
     required this.dateLabel,
     required this.locationLabel,
+    required this.authorLabel,
+    required this.participantsLabel,
+    this.authorAvatarImage,
     this.coverImage,
   });
 
@@ -251,6 +259,9 @@ class _MockEvent {
   final String styleLabel;
   final String dateLabel;
   final String locationLabel;
+  final String authorLabel;
+  final String participantsLabel;
+  final ImageProvider<Object>? authorAvatarImage;
   final ImageProvider<Object>? coverImage;
 }
 
@@ -276,6 +287,9 @@ class _EventsListView extends StatelessWidget {
           styleLabel: event.styleLabel,
           dateLabel: event.dateLabel,
           locationLabel: event.locationLabel,
+          authorLabel: event.authorLabel,
+          participantsLabel: event.participantsLabel,
+          authorAvatarImage: event.authorAvatarImage,
           coverImage: event.coverImage,
         );
       },
