@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class BaseButton extends StatelessWidget {
-  final String assetPath;
   final String text;
   final VoidCallback? onPressed;
-
+  final Widget? prefixIcon;
+  final Widget? suffixIcon;
   final double height;
   final double borderRadius;
   final double borderWidth;
@@ -19,9 +18,10 @@ class BaseButton extends StatelessWidget {
 
   const BaseButton({
     super.key,
-    required this.assetPath,
     required this.text,
     required this.onPressed,
+    this.prefixIcon,
+    this.suffixIcon,
     this.height = 64,
     this.borderRadius = 999,
     this.borderWidth = 1.5,
@@ -33,7 +33,8 @@ class BaseButton extends StatelessWidget {
     this.spacing = 16,
     this.textStyle,
   });
-  bool get _isSvg => assetPath.toLowerCase().endsWith('.svg');
+
+  bool get _isEnabled => onPressed != null;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +43,41 @@ class BaseButton extends StatelessWidget {
       fontSize: 24,
       fontWeight: FontWeight.w600,
       height: 1,
+    );
+
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (prefixIcon != null) ...[
+          SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: Center(child: prefixIcon),
+          ),
+          SizedBox(width: spacing),
+        ],
+
+        Text(
+          text,
+          style: (textStyle ?? defaultTextStyle).copyWith(
+            color:
+                _isEnabled
+                    ? (textStyle ?? defaultTextStyle).color
+                    : Colors.grey,
+          ),
+        ),
+
+        if (suffixIcon != null) ...[
+          SizedBox(width: spacing),
+          SizedBox(
+            width: iconSize,
+            height: iconSize,
+            child: Center(child: suffixIcon),
+          ),
+        ],
+      ],
     );
 
     return Padding(
@@ -55,35 +91,14 @@ class BaseButton extends StatelessWidget {
             height: height,
             padding: padding,
             decoration: BoxDecoration(
-              color: backgroundColor,
+              color:
+                  _isEnabled
+                      ? backgroundColor
+                      : backgroundColor.withOpacity(0.5),
               borderRadius: BorderRadius.circular(borderRadius),
-              border: Border.all(
-                color: borderColor,
-                width: borderWidth,
-              ),
+              border: Border.all(color: borderColor, width: borderWidth),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _isSvg
-                    ? SvgPicture.asset(
-                  assetPath,
-                  width: iconSize,
-                  height: iconSize,
-                )
-                    : Image.asset(
-                  assetPath,
-                  width: iconSize,
-                  height: iconSize,
-                  fit: BoxFit.contain,
-                ),
-                SizedBox(width: spacing),
-                Text(
-                  text,
-                  style: textStyle ?? defaultTextStyle,
-                ),
-              ],
-            ),
+            child: Center(child: content),
           ),
         ),
       ),
