@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
+import 'package:yandex_dance/core/ui/widgets/buttons/base_button.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/features/events/presentation/widgets/event_card.dart';
 
@@ -169,11 +170,11 @@ class _EventsPageState extends State<EventsPage> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // BaseButton(
-                  //   text: 'Фильтры',
-                  //   prefixIcon: const SvgIcon(AppIcons.filter, size: 20),
-                  //   onPressed: _openFiltersModal,
-                  // ),
+                  BaseButton(
+                    text: 'Фильтры',
+                    prefixIcon: const SvgIcon(AppIcons.filter, size: 20),
+                    onPressed: _openFiltersModal,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
