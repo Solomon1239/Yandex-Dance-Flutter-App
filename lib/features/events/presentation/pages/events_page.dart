@@ -94,6 +94,7 @@ class _EventsPageState extends State<EventsPage> {
   @override
   void dispose() {
     _searchEventsController.dispose();
+    _searchEventsFocusNode.dispose();
     super.dispose();
   }
 
