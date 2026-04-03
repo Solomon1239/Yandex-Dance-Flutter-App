@@ -83,15 +83,15 @@ flutter:
     - assets/icons/
 
 flutter_native_splash:
-    color: "#ffffff"
-    image: assets/splash/splash.png
+    color: "#000000"
+    image: assets/splash/compressed_splash.png
 
     android: true
     ios: true
 
     android_12:
-      image: assets/splash/splash.png
-      color: "#ffffff"
+      color: "#000000"
+      image: assets/splash/compressed_splash.png
 
     fullscreen: true
     android_gravity: fill
