@@ -1,6 +1,7 @@
 import 'package:yandex_dance/features/auth/presentation/pages/auth_page.dart';
 import 'package:yandex_dance/features/create_event/presentation/screen/create_event_screen.dart';
 import 'package:yandex_dance/features/events/presentation/pages/events_page.dart';
+import 'package:yandex_dance/features/friends/presentation/pages/friends_page.dart';
 import 'package:yandex_dance/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:yandex_dance/features/profile/presentation/pages/profile_page.dart';
 import 'package:yandex_dance/features/session/presentation/pages/session_gate_page.dart';
@@ -26,5 +27,6 @@ final appRouter = GoRouter(
       builder: (context, state) => const EditProfilePage(),
     ),
     GoRoute(path: '/events', builder: (context, state) => const EventsPage()),
+    GoRoute(path: '/friends', builder: (context, state) => const FriendsPage()),
   ],
 );
