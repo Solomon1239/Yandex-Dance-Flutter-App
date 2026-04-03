@@ -132,7 +132,6 @@ class _EventsPageState extends State<EventsPage> {
           child: Column(
             children: [
               AppTextField(
-                label: 'Simple',
                 hint: 'Найти',
                 state: InputState.initial,
                 prefixIcon: AppIcons.search,

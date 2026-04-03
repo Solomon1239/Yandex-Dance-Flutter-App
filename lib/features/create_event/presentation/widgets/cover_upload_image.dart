@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -6,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
-import 'package:dotted_border/dotted_border.dart';
 
 class CoverUploadWidget extends StatefulWidget {
   const CoverUploadWidget({super.key, this.onChanged, this.initialImagePath});
