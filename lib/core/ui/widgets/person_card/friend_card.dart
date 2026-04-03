@@ -3,15 +3,17 @@ import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/core/ui/widgets/person_card/person_photo.dart';
 
-class CoachCard extends StatelessWidget {
+class FriendCard extends StatelessWidget {
   final ImageProvider image;
+  final String name;
   final double rating;
   final String styleName;
   final String description;
 
-  const CoachCard({
+  const FriendCard({
     super.key,
     required this.image,
+    required this.name,
     required this.rating,
     required this.styleName,
     required this.description,
@@ -38,7 +40,7 @@ class CoachCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Алексей Ким",
+                  name,
                   style: AppTextTheme.body1Medium18pt,
                 ),
                 const SizedBox(height: 5,),

@@ -9,8 +9,6 @@ class AppTextTheme {
   static final body1Medium18pt = _outfit(size: 18, weight: FontWeight.w500, color: AppColors.gray0);
   static final body2Regular14pt = _outfit(size: 14, weight: FontWeight.w400, color: AppColors.gray0);
   static final body3RegularPurple14pt = _outfit(size: 14, weight: FontWeight.w400, color: AppColors.purple500);
-  static final body1Medium18pt = _outfit(size: 18, weight: FontWeight.w500, color: AppColors.gray0);
-  static final body2Regular14pt = _outfit(size: 14, weight: FontWeight.w400, color: AppColors.gray0);
   static final body3Regular20pt = _outfit(size: 20, weight: FontWeight.w600, color: AppColors.gray0);
   static final body4Medium16pt = _outfit(size: 16, weight: FontWeight.w500, color: AppColors.gray0);
 
