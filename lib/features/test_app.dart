@@ -15,7 +15,6 @@ class TestApp extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: AppTextField(
-          label: "label",
           hint: "hint",
           state: state,
           prefixIcon: AppIcons.mail,
