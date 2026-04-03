@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
+import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/base_button.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
+import 'package:yandex_dance/core/ui/widgets/switcher/switcher.dart';
 import 'package:yandex_dance/features/events/presentation/widgets/event_card.dart';
 
 final _mockEvents = [
@@ -148,24 +150,16 @@ class _EventsPageState extends State<EventsPage> {
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: SegmentedButton<_EventsViewMode>(
-                        segments: const [
-                          ButtonSegment(
-                            value: _EventsViewMode.list,
-                            icon: SvgIcon(AppIcons.list, size: 20),
-                          ),
-                          ButtonSegment(
-                            value: _EventsViewMode.map,
-                            icon: SvgIcon(AppIcons.map, size: 20),
-                          ),
+                      child: AppSegmentedControl(
+                        height: 44,
+                        expandItems: true,
+                        items: [
+                          SvgIcon(AppIcons.list, size: 20),
+                          SvgIcon(AppIcons.map, size: 20),
                         ],
-                        selected: {_viewMode},
-                        showSelectedIcon: false,
-                        onSelectionChanged: (selection) {
-                          setState(() {
-                            _viewMode = selection.first;
-                          });
-                        },
+                        onChanged: (index) {},
+                        horizontalPadding: 0,
+                        itemPadding: EdgeInsets.symmetric(horizontal: 0),
                       ),
                     ),
                   ),
