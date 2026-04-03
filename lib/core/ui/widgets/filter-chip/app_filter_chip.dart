@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/core/ui/colors/colors.dart'; 
 
 class ChipItem {
   final String label;
@@ -129,15 +130,12 @@ class AppFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gradient = isSelected
-        ? (colors?.selectedGradient ??
-            const LinearGradient(
-              colors: [Colors.purple, Colors.deepPurple],
-            ))
+        ? (colors?.selectedGradient ?? AppColors.gradient)
         : null;
 
     final backgroundColor = isSelected
         ? colors?.selectedBackgroundColor
-        : (colors?.unselectedBackgroundColor ?? Colors.black);
+        : (colors?.unselectedBackgroundColor ?? Colors.transparent);
 
     final borderColor = isSelected
         ? (colors?.selectedBorderColor ?? Colors.transparent)
