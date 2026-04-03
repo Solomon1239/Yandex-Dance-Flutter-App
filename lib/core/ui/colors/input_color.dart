@@ -23,7 +23,7 @@ class InputColorResolver {
       case InputState.disabled:
         return AppColors.inputTextTertiary;
       case InputState.success:
-        return AppColors.inputTextPositive;
+        return AppColors.inputTextTertiary;
       case InputState.error:
         return AppColors.inputTextNegative;
     }
