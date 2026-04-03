@@ -6,6 +6,6 @@ class DanceApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: TestApp());
+    return MaterialApp(locale: const Locale('en', 'GB'), home: TestApp());
   }
 }

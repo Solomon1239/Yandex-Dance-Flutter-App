@@ -36,7 +36,7 @@ class _AppSegmentedControlState extends State<AppSegmentedControl> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final content = Container(
       height: widget.height,
       padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
       decoration: BoxDecoration(
@@ -44,6 +44,7 @@ class _AppSegmentedControlState extends State<AppSegmentedControl> {
         borderRadius: BorderRadius.circular(30),
       ),
       child: Row(
+        mainAxisSize: widget.expandItems ? MainAxisSize.max : MainAxisSize.min,
         children: List.generate(widget.items.length, (index) {
           final isSelected = selectedIndex == index;
 
@@ -54,12 +55,15 @@ class _AppSegmentedControlState extends State<AppSegmentedControl> {
             child: widget.items[index],
           );
 
-          return widget.expandItems
-              ? Expanded(child: child)
-              : IntrinsicWidth(child: child);
+          return widget.expandItems ? Expanded(child: child) : child;
         }),
       ),
     );
+
+    // Если не нужно растягивать, не оборачиваем в дополнительный SizedBox
+    return widget.expandItems
+        ? content
+        : Row(mainAxisSize: MainAxisSize.min, children: [content]);
   }
 
   void _onItemTap(int index) {

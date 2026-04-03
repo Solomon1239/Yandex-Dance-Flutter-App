@@ -1,12 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
-import 'package:yandex_dance/core/ui/widgets/buttons/base_button.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/switcher/switcher.dart';
+import 'package:yandex_dance/features/create_event/presentation/widgets/cover_upload_image.dart';
 
 class InputDebugPage extends StatefulWidget {
   const InputDebugPage({super.key});
@@ -16,6 +18,8 @@ class InputDebugPage extends StatefulWidget {
 }
 
 class _InputDebugPageState extends State<InputDebugPage> {
+  File? _coverImage;
+
   final _searchController = TextEditingController();
   final _simpleController = TextEditingController();
   final _emailController = TextEditingController();
@@ -44,13 +48,13 @@ class _InputDebugPageState extends State<InputDebugPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Input Debug')),
+      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             AppTextField(
-              label: 'Simple',
               hint: 'Найти',
               state: InputState.initial,
               prefixIcon: AppIcons.search,
@@ -64,11 +68,6 @@ class _InputDebugPageState extends State<InputDebugPage> {
             ),
             const SizedBox(height: 12),
 
-            CupertinoSlidingSegmentedControl<int>(
-              groupValue: 0,
-              children: {0: Text('Войти'), 1: Text('Регистрация')},
-              onValueChanged: (value) {},
-            ),
             AppSegmentedControl(
               expandItems: true,
               height: 50,
@@ -82,6 +81,7 @@ class _InputDebugPageState extends State<InputDebugPage> {
             ),
             SizedBox(height: 20),
             AppSegmentedControl(
+              expandItems: false,
               height: 30,
               itemPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               items: [
@@ -90,6 +90,15 @@ class _InputDebugPageState extends State<InputDebugPage> {
               ],
               onChanged: (index) {},
               horizontalPadding: 0,
+            ),
+            SizedBox(height: 20),
+            CoverUploadWidget(
+              onChanged: (File image) {
+                setState(() {
+                  _coverImage = image;
+                });
+              },
+              initialImagePath: _coverImage?.path,
             ),
           ],
         ),
