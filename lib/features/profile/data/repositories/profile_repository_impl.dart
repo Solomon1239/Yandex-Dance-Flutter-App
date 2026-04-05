@@ -3,12 +3,17 @@ import 'package:yandex_dance/core/errors/app_exception.dart';
 import 'package:yandex_dance/core/services/media/image_optimizer.dart';
 import 'package:yandex_dance/core/services/media/video_optimizer.dart';
 import 'package:yandex_dance/core/services/storage/storage_service.dart';
+import 'package:yandex_dance/core/utils/optional.dart';
 import 'package:yandex_dance/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:yandex_dance/features/profile/data/models/user_profile_model.dart';
 import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
 import 'package:uuid/uuid.dart';
 
+/// Реализация [ProfileRepository]. Склеивает Firestore (через
+/// [ProfileRemoteDataSource]) и Firebase Storage (через [StorageService]),
+/// прогоняет картинки/видео через оптимизаторы и маппит модели ↔ сущности.
+/// Контракт и подробные описания методов — в [ProfileRepository].
 class ProfileRepositoryImpl implements ProfileRepository {
   ProfileRepositoryImpl({
     required ProfileRemoteDataSource remote,
@@ -47,10 +52,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }) async {
     final model = UserProfileModel(
       uid: uid,
+      email: email,
       displayName: displayName ?? email?.split('@').first,
       bio: null,
       city: null,
-      age: null,
+      dateOfBirth: null,
       rating: null,
       avatarUrl: photoUrl,
       avatarThumbUrl: photoUrl,
@@ -96,11 +102,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required String sourcePath,
   }) async {
     try {
+      // 1) сжимаем картинку и готовим thumbnail
       final optimized = await _imageOptimizer.optimizeAvatar(sourcePath);
 
+      // имена с uuid — чтобы CDN не отдавал закешированную старую картинку
       final mainPath = 'user_avatars/$uid/avatar_${_uuid.v4()}.jpg';
       final thumbPath = 'user_avatars/$uid/avatar_thumb_${_uuid.v4()}.jpg';
 
+      // 2) льём оба файла в Storage
       final uploadedMain = await _storageService.uploadFile(
         storagePath: mainPath,
         file: optimized.mainFile,
@@ -113,16 +122,18 @@ class ProfileRepositoryImpl implements ProfileRepository {
         contentType: optimized.contentType,
       );
 
+      // 3) только после успешной заливки сносим старые файлы — иначе
+      // при падении остались бы без аватара вообще
       await _storageService.deleteIfExists(currentProfile.avatarStoragePath);
       await _storageService.deleteIfExists(
         currentProfile.avatarThumbStoragePath,
       );
 
       final updated = currentProfile.copyWith(
-        avatarUrl: uploadedMain.downloadUrl,
-        avatarThumbUrl: uploadedThumb.downloadUrl,
-        avatarStoragePath: uploadedMain.storagePath,
-        avatarThumbStoragePath: uploadedThumb.storagePath,
+        avatarUrl: Optional(uploadedMain.downloadUrl),
+        avatarThumbUrl: Optional(uploadedThumb.downloadUrl),
+        avatarStoragePath: Optional(uploadedMain.storagePath),
+        avatarThumbStoragePath: Optional(uploadedThumb.storagePath),
       );
 
       await saveProfile(updated);
@@ -139,6 +150,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required String sourcePath,
   }) async {
     try {
+      // оптимизатор вернёт и сжатое видео, и кадр-обложку одновременно
       final optimized = await _videoOptimizer.optimizeIntroVideo(sourcePath);
 
       final videoPath = 'user_videos/$uid/intro_${_uuid.v4()}.mp4';
@@ -164,10 +176,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       );
 
       final updated = currentProfile.copyWith(
-        introVideoUrl: uploadedVideo.downloadUrl,
-        introVideoThumbUrl: uploadedThumb.downloadUrl,
-        introVideoStoragePath: uploadedVideo.storagePath,
-        introVideoThumbStoragePath: uploadedThumb.storagePath,
+        introVideoUrl: Optional(uploadedVideo.downloadUrl),
+        introVideoThumbUrl: Optional(uploadedThumb.downloadUrl),
+        introVideoStoragePath: Optional(uploadedVideo.storagePath),
+        introVideoThumbStoragePath: Optional(uploadedThumb.storagePath),
       );
 
       await saveProfile(updated);
@@ -175,7 +187,34 @@ class ProfileRepositoryImpl implements ProfileRepository {
     } catch (_) {
       throw const AppException.unknown('Не удалось загрузить видео');
     } finally {
+      // чистим временные файлы оптимизатора в любом случае
       await _videoOptimizer.clearCache();
+    }
+  }
+
+  @override
+  Future<UserProfile> deleteIntroVideo({
+    required UserProfile currentProfile,
+  }) async {
+    try {
+      await _storageService.deleteIfExists(
+        currentProfile.introVideoStoragePath,
+      );
+      await _storageService.deleteIfExists(
+        currentProfile.introVideoThumbStoragePath,
+      );
+
+      final updated = currentProfile.copyWith(
+        introVideoUrl: const Optional(null),
+        introVideoThumbUrl: const Optional(null),
+        introVideoStoragePath: const Optional(null),
+        introVideoThumbStoragePath: const Optional(null),
+      );
+
+      await saveProfile(updated);
+      return updated;
+    } catch (_) {
+      throw const AppException.unknown('Не удалось удалить видео');
     }
   }
 }

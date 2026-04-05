@@ -1,13 +1,18 @@
-import 'dart:async';
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:yandex_dance/app/di/service_locator.dart';
-import 'package:yandex_dance/core/enums/dance_style.dart';
-import 'package:yandex_dance/features/profile/presentation/managers/profile_manager.dart';
-import 'package:yandex_dance/features/profile/presentation/state/profile_state.dart';
-import 'package:yandex_dance/core/widgets/section_title.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:yandex_dance/app/di/service_locator.dart';
+import 'package:yandex_dance/core/mixins/state_manager_listener_mixin.dart';
+import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
+import 'package:yandex_dance/features/profile/presentation/managers/profile_manager.dart';
+import 'package:yandex_dance/features/profile/presentation/state/profile_state.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_avatar.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_events_section.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_header.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_name_meta.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_settings_sheet.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_styles_pill.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_videos_section.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,34 +21,40 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with StateManagerListenerMixin<ProfilePage, ProfileState> {
   late final ProfileManager _manager;
-  StreamSubscription<ProfileState>? _subscription;
-  String? _lastError;
+
+  @override
+  Stream<ProfileState> get stateStream => _manager.stream;
+
+  @override
+  String? errorMessageOf(ProfileState state) => state.errorMessage;
 
   @override
   void initState() {
     super.initState();
     _manager = sl<ProfileManager>()..start();
-
-    _subscription = _manager.stream.listen((state) {
-      if (!mounted) return;
-      if (state.errorMessage != null &&
-          state.errorMessage!.isNotEmpty &&
-          state.errorMessage != _lastError) {
-        _lastError = state.errorMessage;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
-      }
-    });
+    attachStateListener();
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
     _manager.close();
     super.dispose();
+  }
+
+  Future<void> _showSettingsMenu() async {
+    final action = await showProfileSettingsSheet(context);
+    if (!mounted || action == null) return;
+    switch (action) {
+      case ProfileSettingsAction.edit:
+        context.push('/profile/edit');
+        break;
+      case ProfileSettingsAction.signOut:
+        _manager.signOut();
+        break;
+    }
   }
 
   @override
@@ -57,124 +68,72 @@ class _ProfilePageState extends State<ProfilePage> {
         switch (state.status) {
           case ProfileStatus.loading:
             return const Scaffold(
+              backgroundColor: AppColors.gray500,
               body: Center(child: CircularProgressIndicator()),
             );
 
           case ProfileStatus.error:
             return Scaffold(
-              appBar: AppBar(title: const Text('Профиль')),
-              body: Center(child: Text(state.errorMessage ?? 'Ошибка')),
+              backgroundColor: AppColors.gray500,
+              body: Center(
+                child: Text(
+                  state.errorMessage ?? 'Ошибка',
+                  style: AppTextTheme.body4Medium16pt,
+                ),
+              ),
             );
 
           case ProfileStatus.ready:
             final profile = state.profile!;
-
             return Scaffold(
-              appBar: AppBar(
-                title: const Text('Профиль'),
-                actions: [
-                  IconButton(
-                    onPressed: () => context.push('/profile/edit'),
-                    icon: const Icon(Icons.edit_outlined),
-                  ),
-                  IconButton(
-                    onPressed: _manager.signOut,
-                    icon: const Icon(Icons.logout),
-                  ),
-                ],
-              ),
-              body: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 40,
-                              backgroundImage:
-                                  profile.avatarThumbUrl != null
-                                      ? CachedNetworkImageProvider(
-                                        profile.avatarThumbUrl!,
-                                      )
-                                      : null,
-                              child:
-                                  profile.avatarThumbUrl == null
-                                      ? const Icon(Icons.person, size: 40)
-                                      : null,
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    profile.displayName ?? 'Без имени',
-                                    style:
-                                        Theme.of(
-                                          context,
-                                        ).textTheme.headlineSmall,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (profile.city != null &&
-                                      profile.city!.isNotEmpty)
-                                    Text(profile.city!),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    profile.rating != null
-                                        ? 'Рейтинг: ${profile.rating}'
-                                        : 'Рейтинг появится позже',
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+              backgroundColor: AppColors.gray500,
+              body: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ProfileHeader(onSettingsTap: _showSettingsMenu),
+                      const SizedBox(height: 8),
+                      ProfileAvatar(profile: profile),
+                      const SizedBox(height: 20),
+                      ProfileNameMeta(profile: profile),
+                      const SizedBox(height: 16),
+                      if (profile.danceStyles.isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Center(
+                            child: ProfileStylesPill(profile: profile),
+                          ),
                         ),
+                        const SizedBox(height: 20),
+                      ],
+                      if ((profile.bio ?? '').isNotEmpty) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            profile.bio!,
+                            textAlign: TextAlign.center,
+                            style: AppTextTheme.body2Regular14pt.copyWith(
+                              color: AppColors.gray100,
+                              height: 1.45,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                      ProfileEventsSection(
+                        events: state.events,
+                        onSeeAll: () => context.go('/events'),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    const SectionTitle('О себе'),
-                    const SizedBox(height: 8),
-                    Text(
-                      profile.bio?.isNotEmpty == true
-                          ? profile.bio!
-                          : 'Пока без описания',
-                    ),
-                    const SizedBox(height: 24),
-                    const SectionTitle('Стили'),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children:
-                          profile.danceStyles
-                              .map((style) => Chip(label: Text(style.title)))
-                              .toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    const SectionTitle('Видео'),
-                    const SizedBox(height: 8),
-                    if (profile.introVideoThumbUrl != null)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: CachedNetworkImage(
-                          imageUrl: profile.introVideoThumbUrl!,
-                          fit: BoxFit.cover,
-                          height: 220,
-                          width: double.infinity,
-                        ),
-                      )
-                    else
-                      const Text('Видео пока не добавлено'),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: () => context.push('/profile/edit'),
-                      child: const Text('Редактировать профиль'),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      ProfileVideosSection(
+                        profile: profile,
+                        onUpload: _manager.pickAndUploadIntroVideo,
+                        onDelete: _manager.deleteIntroVideo,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );

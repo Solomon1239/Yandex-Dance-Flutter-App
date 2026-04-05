@@ -2,18 +2,12 @@ import 'package:yandex_dance/core/errors/app_exception.dart';
 import 'package:yandex_dance/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:yandex_dance/features/auth/domain/entities/auth_session.dart';
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
-import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl({
-    required AuthRemoteDataSource remote,
-    required ProfileRepository profileRepository,
-  }) : _remote = remote,
-       _profileRepository = profileRepository;
+  AuthRepositoryImpl({required AuthRemoteDataSource remote}) : _remote = remote;
 
   final AuthRemoteDataSource _remote;
-  final ProfileRepository _profileRepository;
 
   @override
   Stream<AuthSession?> authStateChanges() {
@@ -25,6 +19,13 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   String? get currentUserId => _remote.currentUserId;
+
+  @override
+  AuthSession? get currentSession {
+    final user = _remote.currentUser;
+    if (user == null) return null;
+    return _mapUser(user);
+  }
 
   @override
   Future<void> signInWithEmail({
@@ -48,20 +49,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final credential = await _remote.signUpWithEmail(
-        email: email,
-        password: password,
-      );
-
-      final user = credential.user;
-      if (user != null) {
-        await _profileRepository.createProfileIfNeeded(
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoUrl: user.photoURL,
-        );
-      }
+      await _remote.signUpWithEmail(email: email, password: password);
     } on FirebaseAuthException catch (e) {
       throw AppException.auth(_mapFirebaseAuthMessage(e));
     } catch (_) {
@@ -72,17 +60,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signInWithGoogle() async {
     try {
-      final credential = await _remote.signInWithGoogle();
-      final user = credential.user;
-
-      if (user != null) {
-        await _profileRepository.createProfileIfNeeded(
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoUrl: user.photoURL,
-        );
-      }
+      await _remote.signInWithGoogle();
     } on FirebaseAuthException catch (e) {
       throw AppException.auth(_mapFirebaseAuthMessage(e));
     } on AuthCancelledException {
@@ -95,17 +73,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signInWithApple() async {
     try {
-      final credential = await _remote.signInWithApple();
-      final user = credential.user;
-
-      if (user != null) {
-        await _profileRepository.createProfileIfNeeded(
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoUrl: user.photoURL,
-        );
-      }
+      await _remote.signInWithApple();
     } on FirebaseAuthException catch (e) {
       throw AppException.auth(_mapFirebaseAuthMessage(e));
     } on AuthCancelledException {
@@ -121,6 +89,17 @@ class AuthRepositoryImpl implements AuthRepository {
       await _remote.signOut();
     } catch (_) {
       throw const AppException.unknown('Не удалось выйти из аккаунта');
+    }
+  }
+
+  @override
+  Future<void> deleteCurrentUser() async {
+    try {
+      await _remote.deleteCurrentUser();
+    } on FirebaseAuthException catch (e) {
+      throw AppException.auth(_mapFirebaseAuthMessage(e));
+    } catch (_) {
+      throw const AppException.unknown('Не удалось удалить аккаунт');
     }
   }
 

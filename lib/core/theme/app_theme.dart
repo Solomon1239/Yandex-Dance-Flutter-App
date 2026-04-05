@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   static ThemeData dark() {
-    const background = Color(0xFF232323);
-    const surface = Color.fromARGB(255, 72, 72, 72);
-    const border = Color(0xFFA1A1A1);
+    const background = Color.fromARGB(255, 17, 17, 17);
+    const surface = Color(0xFF232323);
+    const border = Color(0xFF6E6E6E);
     const primary = Color(0xFFA855F7);
     const secondary = Color(0xFFEC499A);
 

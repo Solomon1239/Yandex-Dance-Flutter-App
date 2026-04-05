@@ -14,29 +14,20 @@ class AuthManager extends StateManager<AuthState> {
     }, identifier: 'auth.setMode');
   }
 
-  Future<void> submitEmail({required String email, required String password}) {
+  Future<void> signIn({required String email, required String password}) {
     return handle((emit) async {
       emit(state.copyWith(isLoading: true, clearError: true));
 
       try {
-        if (state.mode == AuthMode.login) {
-          await _authRepository.signInWithEmail(
-            email: email,
-            password: password,
-          );
-        } else {
-          await _authRepository.signUpWithEmail(
-            email: email,
-            password: password,
-          );
-        }
-
-        emit(state.copyWith(isLoading: false));
+        await _authRepository.signInWithEmail(
+          email: email,
+          password: password,
+        );
       } on AppException catch (e, stackTrace) {
-        addError(e, stackTrace, 'auth.submitEmail');
+        addError(e, stackTrace, 'auth.signIn');
         emit(state.copyWith(isLoading: false, errorMessage: e.message));
       } catch (e, stackTrace) {
-        addError(e, stackTrace, 'auth.submitEmail');
+        addError(e, stackTrace, 'auth.signIn');
         emit(
           state.copyWith(
             isLoading: false,
@@ -44,7 +35,31 @@ class AuthManager extends StateManager<AuthState> {
           ),
         );
       }
-    }, identifier: 'auth.submitEmail');
+    }, identifier: 'auth.signIn');
+  }
+
+  Future<void> signUp({required String email, required String password}) {
+    return handle((emit) async {
+      emit(state.copyWith(isLoading: true, clearError: true));
+
+      try {
+        await _authRepository.signUpWithEmail(
+          email: email,
+          password: password,
+        );
+      } on AppException catch (e, stackTrace) {
+        addError(e, stackTrace, 'auth.signUp');
+        emit(state.copyWith(isLoading: false, errorMessage: e.message));
+      } catch (e, stackTrace) {
+        addError(e, stackTrace, 'auth.signUp');
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: 'Не удалось зарегистрироваться',
+          ),
+        );
+      }
+    }, identifier: 'auth.signUp');
   }
 
   Future<void> signInWithGoogle() {
@@ -55,8 +70,20 @@ class AuthManager extends StateManager<AuthState> {
         await _authRepository.signInWithGoogle();
         emit(state.copyWith(isLoading: false));
       } on AppException catch (e, stackTrace) {
+        if (e.type == AppExceptionType.cancelled) {
+          emit(state.copyWith(isLoading: false));
+          return;
+        }
         addError(e, stackTrace, 'auth.signInWithGoogle');
         emit(state.copyWith(isLoading: false, errorMessage: e.message));
+      } catch (e, stackTrace) {
+        addError(e, stackTrace, 'auth.signInWithGoogle');
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: 'Не удалось войти через Google',
+          ),
+        );
       }
     }, identifier: 'auth.signInWithGoogle');
   }
@@ -69,8 +96,20 @@ class AuthManager extends StateManager<AuthState> {
         await _authRepository.signInWithApple();
         emit(state.copyWith(isLoading: false));
       } on AppException catch (e, stackTrace) {
+        if (e.type == AppExceptionType.cancelled) {
+          emit(state.copyWith(isLoading: false));
+          return;
+        }
         addError(e, stackTrace, 'auth.signInWithApple');
         emit(state.copyWith(isLoading: false, errorMessage: e.message));
+      } catch (e, stackTrace) {
+        addError(e, stackTrace, 'auth.signInWithApple');
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: 'Не удалось войти через Apple',
+          ),
+        );
       }
     }, identifier: 'auth.signInWithApple');
   }
