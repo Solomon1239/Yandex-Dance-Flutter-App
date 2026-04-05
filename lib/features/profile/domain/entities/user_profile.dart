@@ -1,13 +1,15 @@
 import 'package:yandex_dance/core/enums/dance_style.dart';
+import 'package:yandex_dance/core/utils/optional.dart';
 import 'package:equatable/equatable.dart';
 
 class UserProfile extends Equatable {
   const UserProfile({
     required this.uid,
+    this.email,
     this.displayName,
     this.bio,
     this.city,
-    this.age,
+    this.dateOfBirth,
     this.rating,
     this.avatarUrl,
     this.avatarThumbUrl,
@@ -24,10 +26,11 @@ class UserProfile extends Equatable {
   });
 
   final String uid;
+  final String? email;
   final String? displayName;
   final String? bio;
   final String? city;
-  final int? age;
+  final DateTime? dateOfBirth;
   final double? rating;
 
   final String? avatarUrl;
@@ -46,23 +49,35 @@ class UserProfile extends Equatable {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
+  int? get age {
+    if (dateOfBirth == null) return null;
+    final now = DateTime.now();
+    int years = now.year - dateOfBirth!.year;
+    if (now.month < dateOfBirth!.month ||
+        (now.month == dateOfBirth!.month && now.day < dateOfBirth!.day)) {
+      years--;
+    }
+    return years;
+  }
+
   bool get hasVideo => introVideoUrl != null && introVideoUrl!.isNotEmpty;
   bool get hasAvatar => avatarUrl != null && avatarUrl!.isNotEmpty;
 
   UserProfile copyWith({
+    String? email,
     String? displayName,
     String? bio,
     String? city,
-    int? age,
+    Optional<DateTime>? dateOfBirth,
     double? rating,
-    String? avatarUrl,
-    String? avatarThumbUrl,
-    String? avatarStoragePath,
-    String? avatarThumbStoragePath,
-    String? introVideoUrl,
-    String? introVideoThumbUrl,
-    String? introVideoStoragePath,
-    String? introVideoThumbStoragePath,
+    Optional<String>? avatarUrl,
+    Optional<String>? avatarThumbUrl,
+    Optional<String>? avatarStoragePath,
+    Optional<String>? avatarThumbStoragePath,
+    Optional<String>? introVideoUrl,
+    Optional<String>? introVideoThumbUrl,
+    Optional<String>? introVideoStoragePath,
+    Optional<String>? introVideoThumbStoragePath,
     List<DanceStyle>? danceStyles,
     bool? onboardingCompleted,
     DateTime? createdAt,
@@ -70,22 +85,37 @@ class UserProfile extends Equatable {
   }) {
     return UserProfile(
       uid: uid,
+      email: email ?? this.email,
       displayName: displayName ?? this.displayName,
       bio: bio ?? this.bio,
       city: city ?? this.city,
-      age: age ?? this.age,
+      dateOfBirth: dateOfBirth != null ? dateOfBirth.value : this.dateOfBirth,
       rating: rating ?? this.rating,
-      avatarUrl: avatarUrl ?? this.avatarUrl,
-      avatarThumbUrl: avatarThumbUrl ?? this.avatarThumbUrl,
-      avatarStoragePath: avatarStoragePath ?? this.avatarStoragePath,
+      avatarUrl: avatarUrl != null ? avatarUrl.value : this.avatarUrl,
+      avatarThumbUrl:
+          avatarThumbUrl != null ? avatarThumbUrl.value : this.avatarThumbUrl,
+      avatarStoragePath:
+          avatarStoragePath != null
+              ? avatarStoragePath.value
+              : this.avatarStoragePath,
       avatarThumbStoragePath:
-          avatarThumbStoragePath ?? this.avatarThumbStoragePath,
-      introVideoUrl: introVideoUrl ?? this.introVideoUrl,
-      introVideoThumbUrl: introVideoThumbUrl ?? this.introVideoThumbUrl,
+          avatarThumbStoragePath != null
+              ? avatarThumbStoragePath.value
+              : this.avatarThumbStoragePath,
+      introVideoUrl:
+          introVideoUrl != null ? introVideoUrl.value : this.introVideoUrl,
+      introVideoThumbUrl:
+          introVideoThumbUrl != null
+              ? introVideoThumbUrl.value
+              : this.introVideoThumbUrl,
       introVideoStoragePath:
-          introVideoStoragePath ?? this.introVideoStoragePath,
+          introVideoStoragePath != null
+              ? introVideoStoragePath.value
+              : this.introVideoStoragePath,
       introVideoThumbStoragePath:
-          introVideoThumbStoragePath ?? this.introVideoThumbStoragePath,
+          introVideoThumbStoragePath != null
+              ? introVideoThumbStoragePath.value
+              : this.introVideoThumbStoragePath,
       danceStyles: danceStyles ?? this.danceStyles,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       createdAt: createdAt ?? this.createdAt,
@@ -96,10 +126,11 @@ class UserProfile extends Equatable {
   @override
   List<Object?> get props => [
     uid,
+    email,
     displayName,
     bio,
     city,
-    age,
+    dateOfBirth,
     rating,
     avatarUrl,
     avatarThumbUrl,

@@ -17,7 +17,7 @@ Future<void> bootstrap() async {
   await sl<GoogleSignIn>().initialize();
   setupStateObserver();
 
-  sl<AppSessionManager>().start();
+  await sl<AppSessionManager>().start();
 
   runApp(const DanceApp());
 }

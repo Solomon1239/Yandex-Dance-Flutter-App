@@ -5,10 +5,11 @@ import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart'
 class UserProfileModel {
   const UserProfileModel({
     required this.uid,
+    this.email,
     this.displayName,
     this.bio,
     this.city,
-    this.age,
+    this.dateOfBirth,
     this.rating,
     this.avatarUrl,
     this.avatarThumbUrl,
@@ -25,10 +26,11 @@ class UserProfileModel {
   });
 
   final String uid;
+  final String? email;
   final String? displayName;
   final String? bio;
   final String? city;
-  final int? age;
+  final DateTime? dateOfBirth;
   final double? rating;
 
   final String? avatarUrl;
@@ -51,10 +53,11 @@ class UserProfileModel {
     final data = doc.data()!;
     return UserProfileModel(
       uid: data['uid'] as String,
+      email: data['email'] as String?,
       displayName: data['displayName'] as String?,
       bio: data['bio'] as String?,
       city: data['city'] as String?,
-      age: data['age'] as int?,
+      dateOfBirth: _dateFromDynamic(data['dateOfBirth']),
       rating: (data['rating'] as num?)?.toDouble(),
       avatarUrl: data['avatarUrl'] as String?,
       avatarThumbUrl: data['avatarThumbUrl'] as String?,
@@ -65,7 +68,8 @@ class UserProfileModel {
       introVideoStoragePath: data['introVideoStoragePath'] as String?,
       introVideoThumbStoragePath: data['introVideoThumbStoragePath'] as String?,
       danceStyles: List<String>.from(data['danceStyles'] ?? const []),
-      onboardingCompleted: data['onboardingCompleted'] as bool? ?? false,
+      onboardingCompleted: data['onboardingCompleted'] as bool? ??
+          List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
     );
@@ -74,10 +78,11 @@ class UserProfileModel {
   UserProfile toEntity() {
     return UserProfile(
       uid: uid,
+      email: email,
       displayName: displayName,
       bio: bio,
       city: city,
-      age: age,
+      dateOfBirth: dateOfBirth,
       rating: rating,
       avatarUrl: avatarUrl,
       avatarThumbUrl: avatarThumbUrl,
@@ -97,10 +102,11 @@ class UserProfileModel {
   static UserProfileModel fromEntity(UserProfile entity) {
     return UserProfileModel(
       uid: entity.uid,
+      email: entity.email,
       displayName: entity.displayName,
       bio: entity.bio,
       city: entity.city,
-      age: entity.age,
+      dateOfBirth: entity.dateOfBirth,
       rating: entity.rating,
       avatarUrl: entity.avatarUrl,
       avatarThumbUrl: entity.avatarThumbUrl,
@@ -120,10 +126,12 @@ class UserProfileModel {
   Map<String, dynamic> toMapForCreate() {
     return {
       'uid': uid,
+      'email': email,
       'displayName': displayName,
       'bio': bio,
       'city': city,
-      'age': age,
+      'dateOfBirth':
+          dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
       'rating': rating,
       'avatarUrl': avatarUrl,
       'avatarThumbUrl': avatarThumbUrl,
@@ -143,10 +151,12 @@ class UserProfileModel {
   Map<String, dynamic> toMapForUpdate() {
     return {
       'uid': uid,
+      'email': email,
       'displayName': displayName,
       'bio': bio,
       'city': city,
-      'age': age,
+      'dateOfBirth':
+          dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
       'rating': rating,
       'avatarUrl': avatarUrl,
       'avatarThumbUrl': avatarThumbUrl,

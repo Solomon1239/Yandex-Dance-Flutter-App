@@ -5,6 +5,8 @@ abstract interface class AuthRepository {
 
   String? get currentUserId;
 
+  AuthSession? get currentSession;
+
   Future<void> signInWithEmail({
     required String email,
     required String password,
@@ -20,4 +22,6 @@ abstract interface class AuthRepository {
   Future<void> signInWithApple();
 
   Future<void> signOut();
+
+  Future<void> deleteCurrentUser();
 }

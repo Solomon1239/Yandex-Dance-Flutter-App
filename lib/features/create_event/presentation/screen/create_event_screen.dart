@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/app/di/service_locator.dart';
+import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
+import 'package:yandex_dance/core/ui/widgets/snackbar/app_snackbar.dart';
+import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/cover_upload_image.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/dance_style_dropdown.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/date_time_picker_row.dart';
@@ -11,6 +17,7 @@ import 'package:yandex_dance/features/create_event/presentation/widgets/event_ti
 import 'package:yandex_dance/features/create_event/presentation/widgets/event_max_participants_field.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/age_restriction_field.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/create_event_button.dart';
+import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
 
 class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
@@ -40,11 +47,13 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   InputState _addressState = InputState.initial;
   InputState _maxParticipantsState = InputState.initial;
 
-  String? _selectedDanceStyle;
+  DanceStyle? _selectedDanceStyle;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
   String _selectedAgeRestriction = 'Для всех';
+
+  File? _selectedCoverFile;
 
   bool _isLoading = false;
 
@@ -133,32 +142,17 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
 
     if (_selectedDanceStyle == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Выберите стиль танца'),
-          backgroundColor: AppColors.pink500,
-        ),
-      );
+      AppSnackBar.showError(context, 'Выберите стиль танца');
       isValid = false;
     }
 
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Выберите дату мероприятия'),
-          backgroundColor: AppColors.pink500,
-        ),
-      );
+      AppSnackBar.showError(context, 'Выберите дату мероприятия');
       isValid = false;
     }
 
     if (_selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Выберите время мероприятия'),
-          backgroundColor: AppColors.pink500,
-        ),
-      );
+      AppSnackBar.showError(context, 'Выберите время мероприятия');
       isValid = false;
     }
 
@@ -173,38 +167,66 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         _isLoading = true;
       });
 
-      await Future.delayed(const Duration(seconds: 2));
+      try {
+        final uid = sl<AuthRepository>().currentUserId;
+        if (uid == null) {
+          throw Exception('Пользователь не авторизован');
+        }
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (mounted) {
-        showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Успешно!'),
-                content: const Text('Мероприятие успешно создано'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              ),
+        final eventDateTime = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
         );
+
+        await sl<EventRepository>().createEvent(
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          danceStyle: _selectedDanceStyle!,
+          dateTime: eventDateTime,
+          address: _addressController.text.trim(),
+          maxParticipants: int.parse(_maxParticipantsController.text.trim()),
+          ageRestriction: _selectedAgeRestriction,
+          creatorId: uid,
+          coverSourcePath: _selectedCoverFile?.path,
+        );
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder:
+                (context) => AlertDialog(
+                  title: const Text('Успешно!'),
+                  content: const Text('Мероприятие успешно создано'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('OK'),
+                    ),
+                  ],
+                ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          AppSnackBar.showError(context, 'Ошибка: ${e.toString()}');
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Пожалуйста, заполните все обязательные поля'),
-          backgroundColor: AppColors.pink500,
-          duration: Duration(seconds: 3),
-        ),
+      AppSnackBar.showError(
+        context,
+        'Пожалуйста, заполните все обязательные поля',
       );
     }
   }
@@ -228,7 +250,11 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CoverUploadWidget(),
+            CoverUploadWidget(
+              onChanged: (file) {
+                _selectedCoverFile = file;
+              },
+            ),
             const SizedBox(height: 20),
 
             EventTitleField(

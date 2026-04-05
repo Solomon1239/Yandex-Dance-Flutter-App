@@ -1,7 +1,8 @@
+import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/errors/app_exception.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
+import 'package:yandex_dance/core/utils/optional.dart';
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
-import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
 import 'package:yandex_dance/features/profile/presentation/state/edit_profile_state.dart';
 import 'package:yx_state/yx_state.dart';
@@ -52,7 +53,8 @@ class EditProfileManager extends StateManager<EditProfileState> {
     required String displayName,
     required String bio,
     required String city,
-    required String ageText,
+    required DateTime? dateOfBirth,
+    required List<DanceStyle> danceStyles,
   }) {
     return handle((emit) async {
       final current = state.profile;
@@ -67,7 +69,8 @@ class EditProfileManager extends StateManager<EditProfileState> {
           displayName: displayName.trim(),
           bio: bio.trim(),
           city: city.trim(),
-          age: ageText.trim().isEmpty ? null : int.parse(ageText.trim()),
+          dateOfBirth: Optional(dateOfBirth),
+          danceStyles: danceStyles,
         );
 
         await _profileRepository.saveProfile(updated);

@@ -21,8 +21,21 @@ class AppSessionManager extends StateManager<AppSessionState> {
   StreamSubscription<AuthSession?>? _authSubscription;
   StreamSubscription<UserProfile?>? _profileSubscription;
 
-  void start() {
+  Future<void> start() async {
     _authSubscription?.cancel();
+
+    final session = _authRepository.currentSession;
+    if (session != null) {
+      try {
+        final profile = await _profileRepository.getProfile(session.uid);
+        if (profile == null) {
+          await _authRepository.deleteCurrentUser();
+        }
+      } catch (_) {
+        await _authRepository.signOut();
+      }
+    }
+
     _authSubscription = _authRepository.authStateChanges().listen(
       _onAuthChanged,
     );
@@ -58,7 +71,7 @@ class AppSessionManager extends StateManager<AppSessionState> {
       if (profile == null) {
         emit(
           state.copyWith(
-            status: AppSessionStatus.checking,
+            status: AppSessionStatus.needsStyleSelection,
             session: session,
             clearProfile: true,
           ),

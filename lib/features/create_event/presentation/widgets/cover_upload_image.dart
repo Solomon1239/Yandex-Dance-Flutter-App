@@ -20,8 +20,6 @@ class CoverUploadWidget extends StatefulWidget {
 
 class _CoverUploadWidgetState extends State<CoverUploadWidget> {
   File? selectedImage;
-  bool isUploading = false;
-  String? uploadedUrl;
 
   @override
   void initState() {
@@ -38,16 +36,11 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
         final file = File(pickedFile.path);
         setState(() {
           selectedImage = file;
-          isUploading = true;
         });
-
         widget.onChanged?.call(file);
-
-        // TODO: Реализовать логику загрузки и получения URL
       }
     } catch (e) {
       debugPrint('Ошибка при выборе изображения: $e');
-      setState(() => isUploading = false);
     }
   }
 
@@ -120,7 +113,7 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isUploading ? null : pickImage,
+      onTap: pickImage,
       child:
           selectedImage == null
               ? DottedBorder(
@@ -172,79 +165,50 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
-                  child:
-                      uploadedUrl != null
-                          ? Image.network(
-                            uploadedUrl!,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          )
-                          : Stack(
-                            fit: StackFit.expand,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.file(
+                        selectedImage!,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      ),
+                      Positioned(
+                        bottom: 16,
+                        right: 16,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.file(
-                                selectedImage!,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
+                              const Icon(
+                                Icons.edit,
+                                size: 16,
+                                color: Colors.white,
                               ),
-                              if (isUploading)
-                                Container(
-                                  color: Colors.black.withOpacity(0.5),
-                                  child: const Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                ),
-                              Positioned(
-                                bottom: 16,
-                                right: 16,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 8,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        Icons.edit,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Изменить',
-                                        style: AppTextTheme.body3Regular20pt
-                                            .copyWith(color: Colors.white),
-                                      ),
-                                    ],
-                                  ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Изменить',
+                                style: AppTextTheme.body3Regular20pt.copyWith(
+                                  color: Colors.white,
                                 ),
                               ),
                             ],
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
     );
-  }
-
-  Future<void> uploadFile(XFile file) async {
-    // Здесь ваша логика загрузки на сервер
-    // Например:
-    // try {
-    //   final response = await apiService.uploadCover(file);
-    //   setState(() {
-    //     uploadedUrl = response.url;
-    //     isUploading = false;
-    //   });
-    // } catch (e) {
-    //   setState(() => isUploading = false);
-    //   // Обработка ошибки
-    // }
   }
 }

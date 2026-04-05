@@ -1,27 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 
 class DanceStyleDropdown extends StatelessWidget {
-  final String? selectedStyle;
-  final void Function(String?) onChanged;
+  final DanceStyle? selectedStyle;
+  final void Function(DanceStyle?) onChanged;
 
   const DanceStyleDropdown({
     super.key,
     required this.selectedStyle,
     required this.onChanged,
   });
-
-  final List<String> _danceStyles = const [
-    'Hip-Hop',
-    'Contemporary',
-    'Ballet',
-    'Jazz',
-    'Breakdance',
-    'Salsa',
-    'Tango',
-    'Ballroom',
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +27,7 @@ class DanceStyleDropdown extends StatelessWidget {
             border: Border.all(color: AppColors.gray300, width: 1),
           ),
           child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
+            child: DropdownButton<DanceStyle>(
               value: selectedStyle,
               hint: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -54,13 +44,13 @@ class DanceStyleDropdown extends StatelessWidget {
                 child: Icon(Icons.arrow_drop_down, color: AppColors.gray300),
               ),
               items:
-                  _danceStyles.map((String style) {
-                    return DropdownMenuItem<String>(
+                  DanceStyle.values.map((DanceStyle style) {
+                    return DropdownMenuItem<DanceStyle>(
                       value: style,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
-                          style,
+                          style.title,
                           style: AppTextTheme.body3Regular20pt,
                         ),
                       ),

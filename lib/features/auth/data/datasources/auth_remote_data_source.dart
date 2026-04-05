@@ -20,6 +20,8 @@ class AuthRemoteDataSource {
 
   String? get currentUserId => _auth.currentUser?.uid;
 
+  User? get currentUser => _auth.currentUser;
+
   Future<UserCredential> signInWithEmail({
     required String email,
     required String password,
@@ -77,6 +79,10 @@ class AuthRemoteDataSource {
 
   Future<void> signOut() async {
     await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
+  }
+
+  Future<void> deleteCurrentUser() async {
+    await _auth.currentUser?.delete();
   }
 
   String _generateNonce([int length = 32]) {

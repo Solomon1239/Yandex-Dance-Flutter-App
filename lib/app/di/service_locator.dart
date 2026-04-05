@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:yandex_dance/core/services/geo/city_search_service.dart';
 import 'package:yandex_dance/core/services/media/image_optimizer.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
 import 'package:yandex_dance/core/services/media/video_optimizer.dart';
@@ -7,6 +8,9 @@ import 'package:yandex_dance/features/auth/data/datasources/auth_remote_data_sou
 import 'package:yandex_dance/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
 import 'package:yandex_dance/features/auth/presentation/managers/auth_manager.dart';
+import 'package:yandex_dance/features/events/data/datasources/event_remote_data_source.dart';
+import 'package:yandex_dance/features/events/data/repositories/event_repository_impl.dart';
+import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
 import 'package:yandex_dance/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:yandex_dance/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
@@ -32,13 +36,19 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton(MediaPickerService.new)
     ..registerLazySingleton(ImageOptimizer.new)
     ..registerLazySingleton(VideoOptimizer.new)
-    ..registerLazySingleton(() => StorageService(sl()));
+    ..registerLazySingleton(() => StorageService(sl()))
+    ..registerLazySingleton(
+      () => CitySearchService(
+        token: '0743c317d03c6061ed73fb541a8fd44375e40fd2',
+      ),
+    );
 
   sl
     ..registerLazySingleton(
       () => AuthRemoteDataSource(auth: sl(), googleSignIn: sl()),
     )
-    ..registerLazySingleton(() => ProfileRemoteDataSource(firestore: sl()));
+    ..registerLazySingleton(() => ProfileRemoteDataSource(firestore: sl()))
+    ..registerLazySingleton(() => EventRemoteDataSource(firestore: sl()));
 
   sl
     ..registerLazySingleton<ProfileRepository>(
@@ -50,7 +60,15 @@ Future<void> configureDependencies() async {
       ),
     )
     ..registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(remote: sl(), profileRepository: sl()),
+      () => AuthRepositoryImpl(remote: sl()),
+    )
+    ..registerLazySingleton<EventRepository>(
+      () => EventRepositoryImpl(
+        remote: sl(),
+        storageService: sl(),
+        imageOptimizer: sl(),
+        videoOptimizer: sl(),
+      ),
     );
 
   sl.registerLazySingleton(
@@ -59,10 +77,19 @@ Future<void> configureDependencies() async {
 
   sl.registerFactory(() => AuthManager(sl()));
   sl.registerFactory(
-    () => StyleSelectionManager(profileRepository: sl(), authRepository: sl()),
+    () => StyleSelectionManager(
+      profileRepository: sl(),
+      authRepository: sl(),
+      mediaPickerService: sl(),
+    ),
   );
   sl.registerFactory(
-    () => ProfileManager(profileRepository: sl(), authRepository: sl()),
+    () => ProfileManager(
+      profileRepository: sl(),
+      authRepository: sl(),
+      eventRepository: sl(),
+      mediaPickerService: sl(),
+    ),
   );
   sl.registerFactory(
     () => EditProfileManager(
