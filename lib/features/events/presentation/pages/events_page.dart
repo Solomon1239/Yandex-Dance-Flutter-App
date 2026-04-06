@@ -3,6 +3,7 @@ import 'dart:math' show Point;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
@@ -58,6 +59,7 @@ class _EventsPageState extends State<EventsPage> {
   String _selectedDateFilter = _anyDateFilterLabel;
   String _selectedAgeFilter = _anyAgeFilterLabel;
   final Map<String, String> _creatorNames = {};
+  final Map<String, String?> _creatorAvatarUrls = {};
   final Set<String> _creatorNamesLoading = {};
 
   Future<void> _openEventDetails(EventPreview event) {
@@ -129,6 +131,9 @@ class _EventsPageState extends State<EventsPage> {
         dateLabel: _dateFormat.format(event.dateTime),
         locationLabel: event.address,
         authorLabel: authorLabel,
+        authorAvatarImage: _networkImageOrNull(
+          _creatorAvatarUrls[event.creatorId],
+        ),
         currentParticipants: event.currentParticipants,
         maxParticipants: event.maxParticipants,
         participantsLabel:
@@ -156,15 +161,21 @@ class _EventsPageState extends State<EventsPage> {
             final name = profile?.displayName?.trim();
             final resolvedName =
                 (name != null && name.isNotEmpty) ? name : 'Организатор';
+            final avatarUrl =
+                profile?.avatarThumbUrl?.trim().isNotEmpty == true
+                    ? profile!.avatarThumbUrl!.trim()
+                    : profile?.avatarUrl?.trim();
             if (!mounted) return;
             setState(() {
               _creatorNames[creatorId] = resolvedName;
+              _creatorAvatarUrls[creatorId] = avatarUrl;
             });
           })
           .catchError((_) {
             if (!mounted) return;
             setState(() {
               _creatorNames[creatorId] = 'Организатор';
+              _creatorAvatarUrls[creatorId] = null;
             });
           })
           .whenComplete(() {

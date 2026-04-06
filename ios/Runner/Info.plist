@@ -81,5 +81,7 @@
 		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Нужен доступ к геопозиции, чтобы показать ваше местоположение на карте.</string>
 	</dict>
 </plist>

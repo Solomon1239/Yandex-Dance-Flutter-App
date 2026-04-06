@@ -267,20 +267,28 @@ class _AuthorAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (authorAvatarImage != null) {
-      return Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          image: DecorationImage(
+      return ClipOval(
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Image(
             image: authorAvatarImage!,
             fit: BoxFit.cover,
-            onError: (_, __) {},
+            errorBuilder: (_, __, ___) => const _AuthorAvatarFallback(),
           ),
         ),
       );
     }
 
+    return const _AuthorAvatarFallback();
+  }
+}
+
+class _AuthorAvatarFallback extends StatelessWidget {
+  const _AuthorAvatarFallback();
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: 44,
       height: 44,
@@ -293,7 +301,7 @@ class _AuthorAvatar extends StatelessWidget {
         ),
       ),
       child: const Center(
-        child: SvgIcon(AppIcons.star, size: 20, color: AppColors.gray0),
+        child: SvgIcon(AppIcons.user, size: 20, color: AppColors.gray0),
       ),
     );
   }

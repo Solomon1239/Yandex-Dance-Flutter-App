@@ -19,9 +19,12 @@ class _EventsMapViewState extends State<_EventsMapView> {
   static const _clusterCircleLayerId = 'events-clusters';
   static const _clusterCountLayerId = 'events-cluster-count';
   static const _eventPointsLayerId = 'events-points';
+  static const _userLocationSourceId = 'user-location-source';
+  static const _userLocationLayerId = 'user-location-layer';
 
   MapLibreMapController? _mapController;
   EventPreview? _selectedEvent;
+  LatLng? _userLocation;
   Offset? _selectedPlateOffset;
   Size _mapSize = Size.zero;
   var _isStyleLoaded = false;
@@ -31,6 +34,7 @@ class _EventsMapViewState extends State<_EventsMapView> {
   var _isPlateOffsetUpdating = false;
   var _plateOffsetUpdatePending = false;
   var _isProgrammaticZoomToEvent = false;
+  var _isLocatingUser = false;
 
   @override
   void didUpdateWidget(covariant _EventsMapView oldWidget) {
@@ -138,6 +142,31 @@ class _EventsMapViewState extends State<_EventsMapView> {
                     ),
                   ),
                 ),
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: AppButton(
+                  onTap: _locateUser,
+                  needLoading: true,
+                  iconWidget: const Icon(
+                    Icons.my_location_rounded,
+                    size: 18,
+                    color: AppColors.gray0,
+                  ),
+                  style: const AppButtonStyle(
+                    width: 42,
+                    height: 42,
+                    padding: EdgeInsets.zero,
+                    backgroundColor: AppColors.gray400,
+                    border: AppButtonBorder(
+                      borderRadius: 999,
+                      borderStyle: ButtonBorderStyle.solid,
+                      borderWidth: 1,
+                      borderColor: AppColors.gray300,
+                    ),
+                  ),
+                ),
+              ),
             ],
           );
         },
@@ -267,10 +296,12 @@ class _EventsMapViewState extends State<_EventsMapView> {
         await controller.setGeoJsonSource(_eventsSourceId, geoJson);
         _isSourceAndLayersReady = true;
       }
+      await _upsertUserLocationLayer();
       return;
     }
 
     await controller.setGeoJsonSource(_eventsSourceId, geoJson);
+    await _upsertUserLocationLayer();
   }
 
   Future<void> _handleMapTap(Point<double> point) async {
@@ -476,6 +507,111 @@ class _EventsMapViewState extends State<_EventsMapView> {
           },
       ],
     };
+  }
+
+  Map<String, dynamic> _buildUserLocationGeoJson() {
+    final location = _userLocation;
+    if (location == null) {
+      return {
+        'type': 'FeatureCollection',
+        'features': const <Map<String, dynamic>>[],
+      };
+    }
+
+    return {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Point',
+            'coordinates': [location.longitude, location.latitude],
+          },
+          'properties': const {},
+        },
+      ],
+    };
+  }
+
+  Future<void> _upsertUserLocationLayer() async {
+    final controller = _mapController;
+    if (controller == null || !_isStyleLoaded) return;
+
+    final geoJson = _buildUserLocationGeoJson();
+    try {
+      await controller.addSource(
+        _userLocationSourceId,
+        GeojsonSourceProperties(data: geoJson),
+      );
+      await controller.addLayer(
+        _userLocationSourceId,
+        _userLocationLayerId,
+        const CircleLayerProperties(
+          circleRadius: 7,
+          circleColor: '#2EA7FF',
+          circleStrokeColor: '#FFFFFF',
+          circleStrokeWidth: 2.5,
+          circleOpacity: 0.98,
+        ),
+        enableInteraction: false,
+      );
+    } catch (_) {
+      await controller.setGeoJsonSource(_userLocationSourceId, geoJson);
+    }
+  }
+
+  Future<void> _locateUser() async {
+    if (_isLocatingUser) return;
+    _isLocatingUser = true;
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showMapMessage('Включи геолокацию на устройстве');
+        return;
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied) {
+        _showMapMessage('Доступ к геолокации не предоставлен');
+        return;
+      }
+      if (permission == LocationPermission.deniedForever) {
+        _showMapMessage('Разреши геолокацию в настройках приложения');
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+      final location = LatLng(position.latitude, position.longitude);
+      _userLocation = location;
+      await _upsertUserLocationLayer();
+
+      final controller = _mapController;
+      if (controller != null) {
+        await controller.animateCamera(
+          CameraUpdate.newLatLngZoom(location, 15.5),
+          duration: const Duration(milliseconds: 550),
+        );
+      }
+    } catch (_) {
+      _showMapMessage('Не удалось определить текущее местоположение');
+    } finally {
+      _isLocatingUser = false;
+    }
+  }
+
+  void _showMapMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   int? _asInt(dynamic value) {
