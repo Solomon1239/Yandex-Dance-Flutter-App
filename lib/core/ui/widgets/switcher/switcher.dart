@@ -9,6 +9,7 @@ class AppSegmentedControl extends StatefulWidget {
   final double horizontalPadding;
   final EdgeInsets itemPadding;
   final bool expandItems;
+  final double? itemWidth;
 
   const AppSegmentedControl({
     super.key,
@@ -19,6 +20,7 @@ class AppSegmentedControl extends StatefulWidget {
     required this.horizontalPadding,
     required this.itemPadding,
     this.expandItems = false,
+    this.itemWidth,
   });
 
   @override
@@ -36,34 +38,42 @@ class _AppSegmentedControlState extends State<AppSegmentedControl> {
 
   @override
   Widget build(BuildContext context) {
-    final content = Container(
-      height: widget.height,
-      padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
-      decoration: BoxDecoration(
-        color: AppColors.gray400,
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(
-        mainAxisSize: widget.expandItems ? MainAxisSize.max : MainAxisSize.min,
-        children: List.generate(widget.items.length, (index) {
-          final isSelected = selectedIndex == index;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final shouldExpand = widget.expandItems && constraints.hasBoundedWidth;
 
-          final child = _SegmentedItem(
-            isSelected: isSelected,
-            onTap: () => _onItemTap(index),
-            padding: widget.itemPadding,
-            child: widget.items[index],
-          );
+        final content = Container(
+          height: widget.height,
+          padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
+          decoration: BoxDecoration(
+            color: AppColors.gray400,
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Row(
+            mainAxisSize: shouldExpand ? MainAxisSize.max : MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: List.generate(widget.items.length, (index) {
+              final isSelected = selectedIndex == index;
 
-          return widget.expandItems ? Expanded(child: child) : child;
-        }),
-      ),
+              final child = _SegmentedItem(
+                isSelected: isSelected,
+                onTap: () => _onItemTap(index),
+                padding: widget.itemPadding,
+                width: shouldExpand ? null : widget.itemWidth,
+                child: widget.items[index],
+              );
+
+              return shouldExpand ? Expanded(child: child) : child;
+            }),
+          ),
+        );
+
+        // Fallback для unbounded width: не используем Expanded, чтобы избежать flex-ошибок.
+        return shouldExpand
+            ? content
+            : Row(mainAxisSize: MainAxisSize.min, children: [content]);
+      },
     );
-
-    // Если не нужно растягивать, не оборачиваем в дополнительный SizedBox
-    return widget.expandItems
-        ? content
-        : Row(mainAxisSize: MainAxisSize.min, children: [content]);
   }
 
   void _onItemTap(int index) {
@@ -80,12 +90,14 @@ class _SegmentedItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final EdgeInsets padding;
+  final double? width;
   final Widget child;
 
   const _SegmentedItem({
     required this.isSelected,
     required this.onTap,
     required this.padding,
+    required this.width,
     required this.child,
   });
 
@@ -94,6 +106,7 @@ class _SegmentedItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        width: width,
         padding: padding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
