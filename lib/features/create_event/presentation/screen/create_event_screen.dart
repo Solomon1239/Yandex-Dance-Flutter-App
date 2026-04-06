@@ -3,9 +3,16 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
+import 'package:yandex_dance/core/errors/app_exception.dart';
+import 'package:yandex_dance/core/services/geo/address_search_service.dart';
+import 'package:yandex_dance/core/services/geo/address_suggestion.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
+import 'package:yandex_dance/core/ui/icons/app_icons.dart';
+import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
+import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
+import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 import 'package:yandex_dance/core/ui/widgets/snackbar/app_snackbar.dart';
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/cover_upload_image.dart';
@@ -27,6 +34,7 @@ class CreateEventScreen extends StatefulWidget {
 }
 
 class _CreateEventScreenState extends State<CreateEventScreen> {
+  late final AddressSearchService _addressSearchService;
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _addressController = TextEditingController();
@@ -52,10 +60,15 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   TimeOfDay? _selectedTime;
 
   String _selectedAgeRestriction = 'Для всех';
+  AddressSuggestion? _selectedAddressSuggestion;
 
   File? _selectedCoverFile;
 
-  bool _isLoading = false;
+  @override
+  void initState() {
+    super.initState();
+    _addressSearchService = sl<AddressSearchService>();
+  }
 
   @override
   void dispose() {
@@ -129,6 +142,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       });
       isValid = false;
     }
+    if (_selectedAddressSuggestion == null ||
+        _selectedAddressSuggestion!.displayLabel !=
+            _addressController.text.trim()) {
+      setState(() {
+        _addressTouched = true;
+        _addressState = InputState.error;
+      });
+      AppSnackBar.showError(context, 'Выберите адрес из подсказок');
+      isValid = false;
+    }
 
     final maxParticipantsError = _maxParticipantsValidator(
       _maxParticipantsController.text,
@@ -162,72 +185,69 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   Future<void> _createEvent() async {
     FocusScope.of(context).unfocus();
 
-    if (_validateAllFields()) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        final uid = sl<AuthRepository>().currentUserId;
-        if (uid == null) {
-          throw Exception('Пользователь не авторизован');
-        }
-
-        final eventDateTime = DateTime(
-          _selectedDate!.year,
-          _selectedDate!.month,
-          _selectedDate!.day,
-          _selectedTime!.hour,
-          _selectedTime!.minute,
-        );
-
-        await sl<EventRepository>().createEvent(
-          title: _titleController.text.trim(),
-          description: _descriptionController.text.trim(),
-          danceStyle: _selectedDanceStyle!,
-          dateTime: eventDateTime,
-          address: _addressController.text.trim(),
-          maxParticipants: int.parse(_maxParticipantsController.text.trim()),
-          ageRestriction: _selectedAgeRestriction,
-          creatorId: uid,
-          coverSourcePath: _selectedCoverFile?.path,
-        );
-
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder:
-                (context) => AlertDialog(
-                  title: const Text('Успешно!'),
-                  content: const Text('Мероприятие успешно создано'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          AppSnackBar.showError(context, 'Ошибка: ${e.toString()}');
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
-    } else {
+    if (!_validateAllFields()) {
       AppSnackBar.showError(
         context,
         'Пожалуйста, заполните все обязательные поля',
       );
+      return;
+    }
+
+    try {
+      final uid = sl<AuthRepository>().currentUserId;
+      if (uid == null) {
+        throw Exception('Пользователь не авторизован');
+      }
+
+      final eventDateTime = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+
+      await sl<EventRepository>().createEvent(
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        danceStyle: _selectedDanceStyle!,
+        dateTime: eventDateTime,
+        address: _addressController.text.trim(),
+        latitude: _selectedAddressSuggestion?.latitude,
+        longitude: _selectedAddressSuggestion?.longitude,
+        maxParticipants: int.parse(_maxParticipantsController.text.trim()),
+        ageRestriction: _selectedAgeRestriction,
+        creatorId: uid,
+        coverSourcePath: _selectedCoverFile?.path,
+      );
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text('Успешно!'),
+                content: const Text('Мероприятие успешно создано'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+        );
+      }
+    } on AppException catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, e.message);
+      }
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.showError(context, 'Ошибка: ${e.toString()}');
+      }
     }
   }
 
@@ -236,17 +256,29 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     return Scaffold(
       backgroundColor: AppColors.gray500,
       appBar: AppBar(
-        title: Text(
-          'Создать мероприятие',
-          style: AppTextTheme.body3Regular20pt,
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+        scrolledUnderElevation: 0,
+        title: Text('Создать мероприятие', style: AppTextTheme.body1Medium18pt),
+        leadingWidth: 64,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: AppButton(
+            iconWidget: const SvgIcon(
+              AppIcons.back,
+              size: 20,
+              color: AppColors.gray0,
+            ),
+            onTap: () => Navigator.of(context).pop(),
+            style: const AppButtonStyle(
+              width: 40,
+              height: 40,
+              padding: EdgeInsets.zero,
+              backgroundColor: Colors.transparent,
+            ),
+          ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -255,7 +287,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
                 _selectedCoverFile = file;
               },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             EventTitleField(
               controller: _titleController,
@@ -272,7 +304,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             EventDescriptionField(
               controller: _descriptionController,
@@ -288,7 +320,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             DanceStyleDropdown(
               selectedStyle: _selectedDanceStyle,
@@ -299,7 +331,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             DateTimePickerRow(
               selectedDate: _selectedDate,
@@ -316,7 +348,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             EventAddressField(
               controller: _addressController,
@@ -324,6 +356,10 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               touched: _addressTouched,
               state: _addressState,
               validator: _addressValidator,
+              searchService: _addressSearchService,
+              selectedAddress: _selectedAddressSuggestion,
+              onAddressSelected:
+                  (value) => setState(() => _selectedAddressSuggestion = value),
               onChanged: (value) {
                 setState(() => _addressTouched = true);
               },
@@ -332,7 +368,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             EventMaxParticipantsField(
               controller: _maxParticipantsController,
@@ -348,7 +384,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 14),
 
             AgeRestrictionField(
               selectedAgeRestriction: _selectedAgeRestriction,
@@ -359,15 +395,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
               },
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
             CreateEventButton(
               onPressed: _createEvent,
-              isLoading: _isLoading,
               text: 'Создать мероприятие',
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
           ],
         ),
       ),

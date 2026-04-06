@@ -122,32 +122,32 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
                   strokeWidth: 1,
                   color: AppColors.purple600,
                   dashPattern: [6, 4],
-                  radius: const Radius.circular(24),
+                  radius: const Radius.circular(18),
                 ),
                 child: Container(
                   alignment: Alignment.center,
-                  height: 200,
+                  height: 170,
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: AppColors.gray400,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(18),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SvgPicture.asset(
                         AppIcons.upload,
-                        width: 36,
-                        height: 36,
+                        width: 30,
+                        height: 30,
                         colorFilter: const ColorFilter.mode(
                           AppColors.gray100,
                           BlendMode.srcIn,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         'Загрузить обложку',
-                        style: AppTextTheme.body3Regular20pt.copyWith(
+                        style: AppTextTheme.body4Medium16pt.copyWith(
                           color: AppColors.gray100,
                         ),
                       ),
@@ -157,14 +157,14 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
               )
               : Container(
                 alignment: Alignment.center,
-                height: 200,
+                height: 170,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.gray100,
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(18),
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(18),
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
@@ -175,29 +175,29 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
                         height: double.infinity,
                       ),
                       Positioned(
-                        bottom: 16,
-                        right: 16,
+                        bottom: 12,
+                        right: 12,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                            horizontal: 10,
+                            vertical: 6,
                           ),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.7),
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(
                                 Icons.edit,
-                                size: 16,
+                                size: 14,
                                 color: Colors.white,
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 3),
                               Text(
                                 'Изменить',
-                                style: AppTextTheme.body3Regular20pt.copyWith(
+                                style: AppTextTheme.body2Regular14pt.copyWith(
                                   color: Colors.white,
                                 ),
                               ),

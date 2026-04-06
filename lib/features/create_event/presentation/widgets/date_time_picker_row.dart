@@ -48,33 +48,33 @@ class DateTimePickerRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Дата', style: AppTextTheme.body3Regular20pt),
-              const SizedBox(height: 8),
+              Text('Дата', style: AppTextTheme.body4Medium16pt),
+              const SizedBox(height: 6),
               InkWell(
                 onTap: () => _selectDate(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
+                  height: 56,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: AppColors.gray400,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.gray300),
+                    color: AppColors.gray400.withValues(alpha: 0.70),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.gray300.withValues(alpha: 0.55),
+                    ),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.calendar_today,
-                        size: 20,
+                        size: 18,
                         color: AppColors.gray300,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Text(
                         selectedDate != null
                             ? '${selectedDate!.day.toString().padLeft(2, '0')}.${selectedDate!.month.toString().padLeft(2, '0')}.${selectedDate!.year}'
                             : 'ДД.ММ.ГГГГ',
-                        style: AppTextTheme.body4Medium16pt.copyWith(
+                        style: AppTextTheme.body2Regular14pt.copyWith(
                           color:
                               selectedDate != null
                                   ? AppColors.gray0
@@ -88,38 +88,38 @@ class DateTimePickerRow extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Время', style: AppTextTheme.body3Regular20pt),
-              const SizedBox(height: 8),
+              Text('Время', style: AppTextTheme.body4Medium16pt),
+              const SizedBox(height: 6),
               InkWell(
                 onTap: () => _selectTime(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
+                  height: 56,
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
                   decoration: BoxDecoration(
-                    color: AppColors.gray400,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.gray300),
+                    color: AppColors.gray400.withValues(alpha: 0.70),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.gray300.withValues(alpha: 0.55),
+                    ),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.access_time,
-                        size: 20,
+                        size: 18,
                         color: AppColors.gray300,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Text(
                         selectedTime != null
                             ? selectedTime!.format(context)
                             : '--:--',
-                        style: AppTextTheme.body4Medium16pt.copyWith(
+                        style: AppTextTheme.body2Regular14pt.copyWith(
                           color:
                               selectedTime != null
                                   ? AppColors.gray0
@@ -448,7 +448,7 @@ Future<DateTime?> showCustomCupertinoDatePicker(
 
   return showDialog<DateTime?>(
     context: context,
-    barrierColor: AppColors.gray200.withOpacity(0.8),
+    barrierColor: AppColors.gray200.withValues(alpha: 0.8),
     builder: (context) {
       return CustomDatePicker(
         initialDate: normalizedInitialDate,
@@ -465,7 +465,7 @@ Future<TimeOfDay?> showCustomCupertinoTimePicker(
 }) {
   return showDialog<TimeOfDay?>(
     context: context,
-    barrierColor: AppColors.gray200.withOpacity(0.8),
+    barrierColor: AppColors.gray200.withValues(alpha: 0.8),
     builder: (context) {
       return CustomTimePicker(initialTime: initialTime);
     },

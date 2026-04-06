@@ -1,5 +1,10 @@
+import 'dart:io';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/errors/app_exception.dart';
+import 'package:yandex_dance/core/errors/media_optimization_exception.dart';
 import 'package:yandex_dance/core/services/media/image_optimizer.dart';
 import 'package:yandex_dance/core/services/media/video_optimizer.dart';
 import 'package:yandex_dance/core/services/storage/storage_service.dart';
@@ -33,9 +38,9 @@ class EventRepositoryImpl implements EventRepository {
 
   @override
   Stream<List<DanceEvent>> watchAllEvents() {
-    return _remote
-        .watchAllEvents()
-        .map((models) => models.map((m) => m.toEntity()).toList());
+    return _remote.watchAllEvents().map(
+      (models) => models.map((m) => m.toEntity()).toList(),
+    );
   }
 
   @override
@@ -58,6 +63,8 @@ class EventRepositoryImpl implements EventRepository {
     required DanceStyle danceStyle,
     required DateTime dateTime,
     required String address,
+    double? latitude,
+    double? longitude,
     required int maxParticipants,
     required String ageRestriction,
     required String creatorId,
@@ -74,60 +81,51 @@ class EventRepositoryImpl implements EventRepository {
       String? promoVideoStoragePath;
       String? promoVideoThumbStoragePath;
 
-      // id документа мы узнаем только после создания в Firestore, а файлы
-      // хотим залить заранее — поэтому складываем их во временную папку
-      // по tempId. Если решим переносить в `event_covers/{realId}` — это
-      // можно сделать отдельным проходом уже после получения реального id.
+      // Префикс с uid лучше совпадает с логикой Storage-правил, как у профиля.
       final tempId = _uuid.v4();
 
       if (coverSourcePath != null) {
-        final optimized = await _imageOptimizer.optimizeCover(coverSourcePath);
-
-        final mainPath = 'event_covers/$tempId/cover_${_uuid.v4()}.jpg';
-        final thumbPath = 'event_covers/$tempId/cover_thumb_${_uuid.v4()}.jpg';
-
-        final uploadedMain = await _storageService.uploadFile(
-          storagePath: mainPath,
-          file: optimized.mainFile,
-          contentType: optimized.contentType,
+        final uploaded = await _uploadCoverWithFallback(
+          sourcePath: coverSourcePath,
+          folderPath: 'event_covers/$creatorId/$tempId',
         );
-        final uploadedThumb = await _storageService.uploadFile(
-          storagePath: thumbPath,
-          file: optimized.thumbFile,
-          contentType: optimized.contentType,
-        );
-
-        coverUrl = uploadedMain.downloadUrl;
-        coverThumbUrl = uploadedThumb.downloadUrl;
-        coverStoragePath = uploadedMain.storagePath;
-        coverThumbStoragePath = uploadedThumb.storagePath;
+        coverUrl = uploaded.main.downloadUrl;
+        coverThumbUrl = uploaded.thumb.downloadUrl;
+        coverStoragePath = uploaded.main.storagePath;
+        coverThumbStoragePath = uploaded.thumb.storagePath;
       }
 
       if (promoVideoSourcePath != null) {
-        final optimized = await _videoOptimizer.optimizeIntroVideo(
-          promoVideoSourcePath,
-        );
+        try {
+          final optimized = await _videoOptimizer.optimizeIntroVideo(
+            promoVideoSourcePath,
+          );
 
-        final videoPath = 'event_videos/$tempId/promo_${_uuid.v4()}.mp4';
-        final thumbPath = 'event_videos/$tempId/promo_thumb_${_uuid.v4()}.jpg';
+          final videoPath =
+              'event_videos/$creatorId/$tempId/promo_${_uuid.v4()}.mp4';
+          final thumbPath =
+              'event_videos/$creatorId/$tempId/promo_thumb_${_uuid.v4()}.jpg';
 
-        final uploadedVideo = await _storageService.uploadFile(
-          storagePath: videoPath,
-          file: optimized.videoFile,
-          contentType: optimized.contentType,
-        );
-        final uploadedThumb = await _storageService.uploadFile(
-          storagePath: thumbPath,
-          file: optimized.thumbFile,
-          contentType: 'image/jpeg',
-        );
+          final uploadedVideo = await _storageService.uploadFile(
+            storagePath: videoPath,
+            file: optimized.videoFile,
+            contentType: optimized.contentType,
+          );
+          final uploadedThumb = await _storageService.uploadFile(
+            storagePath: thumbPath,
+            file: optimized.thumbFile,
+            contentType: 'image/jpeg',
+          );
 
-        promoVideoUrl = uploadedVideo.downloadUrl;
-        promoVideoThumbUrl = uploadedThumb.downloadUrl;
-        promoVideoStoragePath = uploadedVideo.storagePath;
-        promoVideoThumbStoragePath = uploadedThumb.storagePath;
-
-        await _videoOptimizer.clearCache();
+          promoVideoUrl = uploadedVideo.downloadUrl;
+          promoVideoThumbUrl = uploadedThumb.downloadUrl;
+          promoVideoStoragePath = uploadedVideo.storagePath;
+          promoVideoThumbStoragePath = uploadedThumb.storagePath;
+        } catch (_) {
+          // Если нет доступа к Storage, не срываем создание события в Firestore.
+        } finally {
+          await _videoOptimizer.clearCache();
+        }
       }
 
       // id пустой — Firestore сам сгенерит его при .add()
@@ -142,6 +140,8 @@ class EventRepositoryImpl implements EventRepository {
         danceStyle: danceStyle.code,
         dateTime: dateTime,
         address: address,
+        latitude: latitude,
+        longitude: longitude,
         maxParticipants: maxParticipants,
         participantIds: [creatorId],
         ageRestriction: ageRestriction,
@@ -155,8 +155,20 @@ class EventRepositoryImpl implements EventRepository {
       final docId = await _remote.createEvent(model);
       final created = await _remote.getEvent(docId);
       return created!.toEntity();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('createEvent failed: $e');
+      debugPrintStack(stackTrace: stackTrace);
       if (e is AppException) rethrow;
+      if (e is FirebaseException) {
+        final message = e.message?.trim();
+        if (message == null || message.isEmpty) {
+          throw AppException.unknown('Firebase ошибка: ${e.code}');
+        }
+        throw AppException.unknown('Firebase ошибка (${e.code}): $message');
+      }
+      if (e is MediaOptimizationException) {
+        throw AppException.unknown(e.message);
+      }
       throw const AppException.unknown('Не удалось создать мероприятие');
     }
   }
@@ -208,30 +220,19 @@ class EventRepositoryImpl implements EventRepository {
     required String sourcePath,
   }) async {
     try {
-      final optimized = await _imageOptimizer.optimizeCover(sourcePath);
-
-      final mainPath = 'event_covers/$eventId/cover_${_uuid.v4()}.jpg';
-      final thumbPath = 'event_covers/$eventId/cover_thumb_${_uuid.v4()}.jpg';
-
-      final uploadedMain = await _storageService.uploadFile(
-        storagePath: mainPath,
-        file: optimized.mainFile,
-        contentType: optimized.contentType,
-      );
-      final uploadedThumb = await _storageService.uploadFile(
-        storagePath: thumbPath,
-        file: optimized.thumbFile,
-        contentType: optimized.contentType,
+      final uploaded = await _uploadCoverWithFallback(
+        sourcePath: sourcePath,
+        folderPath: 'event_covers/${currentEvent.creatorId}/$eventId',
       );
 
       await _storageService.deleteIfExists(currentEvent.coverStoragePath);
       await _storageService.deleteIfExists(currentEvent.coverThumbStoragePath);
 
       final updated = currentEvent.copyWith(
-        coverUrl: uploadedMain.downloadUrl,
-        coverThumbUrl: uploadedThumb.downloadUrl,
-        coverStoragePath: uploadedMain.storagePath,
-        coverThumbStoragePath: uploadedThumb.storagePath,
+        coverUrl: uploaded.main.downloadUrl,
+        coverThumbUrl: uploaded.thumb.downloadUrl,
+        coverStoragePath: uploaded.main.storagePath,
+        coverThumbStoragePath: uploaded.thumb.storagePath,
       );
 
       await updateEvent(updated);
@@ -250,8 +251,10 @@ class EventRepositoryImpl implements EventRepository {
     try {
       final optimized = await _videoOptimizer.optimizeIntroVideo(sourcePath);
 
-      final videoPath = 'event_videos/$eventId/promo_${_uuid.v4()}.mp4';
-      final thumbPath = 'event_videos/$eventId/promo_thumb_${_uuid.v4()}.jpg';
+      final videoPath =
+          'event_videos/${currentEvent.creatorId}/$eventId/promo_${_uuid.v4()}.mp4';
+      final thumbPath =
+          'event_videos/${currentEvent.creatorId}/$eventId/promo_thumb_${_uuid.v4()}.jpg';
 
       final uploadedVideo = await _storageService.uploadFile(
         storagePath: videoPath,
@@ -264,9 +267,7 @@ class EventRepositoryImpl implements EventRepository {
         contentType: 'image/jpeg',
       );
 
-      await _storageService.deleteIfExists(
-        currentEvent.promoVideoStoragePath,
-      );
+      await _storageService.deleteIfExists(currentEvent.promoVideoStoragePath);
       await _storageService.deleteIfExists(
         currentEvent.promoVideoThumbStoragePath,
       );
@@ -285,5 +286,63 @@ class EventRepositoryImpl implements EventRepository {
     } finally {
       await _videoOptimizer.clearCache();
     }
+  }
+
+  Future<({UploadedFileData main, UploadedFileData thumb})>
+  _uploadCoverWithFallback({
+    required String sourcePath,
+    required String folderPath,
+  }) async {
+    final optimizedMainPath = '$folderPath/cover_${_uuid.v4()}.jpg';
+    final optimizedThumbPath = '$folderPath/cover_thumb_${_uuid.v4()}.jpg';
+
+    try {
+      final optimized = await _imageOptimizer.optimizeCover(sourcePath);
+
+      final main = await _storageService.uploadFile(
+        storagePath: optimizedMainPath,
+        file: optimized.mainFile,
+        contentType: optimized.contentType,
+      );
+      final thumb = await _storageService.uploadFile(
+        storagePath: optimizedThumbPath,
+        file: optimized.thumbFile,
+        contentType: optimized.contentType,
+      );
+      return (main: main, thumb: thumb);
+    } on MediaOptimizationException {
+      final originalFile = File(sourcePath);
+      if (!await originalFile.exists()) {
+        throw const AppException.unknown('Файл обложки не найден');
+      }
+
+      final extension = _normalizedImageExtension(sourcePath);
+      final main = await _storageService.uploadFile(
+        storagePath: '$folderPath/cover_original_${_uuid.v4()}$extension',
+        file: originalFile,
+        contentType: _imageContentType(sourcePath),
+      );
+
+      // Если не смогли сделать thumbnail, используем основной файл.
+      return (main: main, thumb: main);
+    }
+  }
+
+  String _normalizedImageExtension(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.png')) return '.png';
+    if (lower.endsWith('.webp')) return '.webp';
+    if (lower.endsWith('.heic')) return '.heic';
+    if (lower.endsWith('.heif')) return '.heif';
+    return '.jpg';
+  }
+
+  String _imageContentType(String path) {
+    final lower = path.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.heic')) return 'image/heic';
+    if (lower.endsWith('.heif')) return 'image/heif';
+    return 'image/jpeg';
   }
 }

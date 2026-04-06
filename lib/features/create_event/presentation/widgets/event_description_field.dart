@@ -28,8 +28,8 @@ class EventDescriptionField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Описание', style: AppTextTheme.body3Regular20pt),
-        const SizedBox(height: 8),
+        Text('Описание', style: AppTextTheme.body4Medium16pt),
+        const SizedBox(height: 6),
         AppTextField(
           hint: 'Расскажите о мероприятии',
           state: state,
@@ -39,6 +39,8 @@ class EventDescriptionField extends StatelessWidget {
           validator: validator,
           isLongText: true,
           textInputAction: TextInputAction.done,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          hintStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           onChanged: onChanged,
           onStateChange: onStateChange,
         ),
