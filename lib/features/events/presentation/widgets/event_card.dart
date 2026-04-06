@@ -9,6 +9,7 @@ class EventCard extends StatelessWidget {
     super.key,
     this.title = 'Заголовок карточки',
     this.styleLabel = 'Стиль',
+    this.ageRestrictionLabel = '16+',
     this.dateLabel = 'Дата и время',
     this.locationLabel = 'Локация',
     this.authorLabel = 'Вы',
@@ -20,6 +21,7 @@ class EventCard extends StatelessWidget {
 
   final String title;
   final String styleLabel;
+  final String ageRestrictionLabel;
   final String dateLabel;
   final String locationLabel;
   final String authorLabel;
@@ -71,6 +73,11 @@ class EventCard extends StatelessWidget {
                     _MetaRow(iconPath: AppIcons.calendar, text: dateLabel),
                     const SizedBox(height: 12),
                     _MetaRow(iconPath: AppIcons.pin, text: locationLabel),
+                    const SizedBox(height: 12),
+                    _MetaRow(
+                      iconPath: AppIcons.info,
+                      text: 'Возраст: $ageRestrictionLabel',
+                    ),
                     const SizedBox(height: 12),
                     Divider(color: Colors.white.withValues(alpha: 0.1)),
                     const SizedBox(height: 12),

@@ -14,6 +14,8 @@ class DanceEventModel {
     required this.danceStyle,
     required this.dateTime,
     required this.address,
+    this.latitude,
+    this.longitude,
     required this.maxParticipants,
     required this.participantIds,
     required this.ageRestriction,
@@ -38,6 +40,8 @@ class DanceEventModel {
   final String danceStyle;
   final DateTime dateTime;
   final String address;
+  final double? latitude;
+  final double? longitude;
   final int maxParticipants;
   final List<String> participantIds;
   final String ageRestriction;
@@ -51,9 +55,7 @@ class DanceEventModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  factory DanceEventModel.fromDoc(
-    DocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
+  factory DanceEventModel.fromDoc(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data()!;
     return DanceEventModel(
       id: doc.id,
@@ -66,14 +68,15 @@ class DanceEventModel {
       danceStyle: data['danceStyle'] as String,
       dateTime: _dateFromDynamic(data['dateTime'])!,
       address: data['address'] as String,
+      latitude: _doubleFromDynamic(data['latitude'] ?? data['lat']),
+      longitude: _doubleFromDynamic(data['longitude'] ?? data['lng']),
       maxParticipants: data['maxParticipants'] as int,
       participantIds: List<String>.from(data['participantIds'] ?? const []),
       ageRestriction: data['ageRestriction'] as String? ?? 'Для всех',
       promoVideoUrl: data['promoVideoUrl'] as String?,
       promoVideoThumbUrl: data['promoVideoThumbUrl'] as String?,
       promoVideoStoragePath: data['promoVideoStoragePath'] as String?,
-      promoVideoThumbStoragePath:
-          data['promoVideoThumbStoragePath'] as String?,
+      promoVideoThumbStoragePath: data['promoVideoThumbStoragePath'] as String?,
       creatorId: data['creatorId'] as String,
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
@@ -92,6 +95,8 @@ class DanceEventModel {
       danceStyle: DanceStyleX.fromCode(danceStyle),
       dateTime: dateTime,
       address: address,
+      latitude: latitude,
+      longitude: longitude,
       maxParticipants: maxParticipants,
       participantIds: participantIds,
       ageRestriction: ageRestriction,
@@ -117,6 +122,8 @@ class DanceEventModel {
       danceStyle: entity.danceStyle.code,
       dateTime: entity.dateTime,
       address: entity.address,
+      latitude: entity.latitude,
+      longitude: entity.longitude,
       maxParticipants: entity.maxParticipants,
       participantIds: entity.participantIds,
       ageRestriction: entity.ageRestriction,
@@ -141,6 +148,8 @@ class DanceEventModel {
       'danceStyle': danceStyle,
       'dateTime': Timestamp.fromDate(dateTime),
       'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
       'maxParticipants': maxParticipants,
       'participantIds': participantIds,
       'ageRestriction': ageRestriction,
@@ -165,6 +174,8 @@ class DanceEventModel {
       'danceStyle': danceStyle,
       'dateTime': Timestamp.fromDate(dateTime),
       'address': address,
+      'latitude': latitude,
+      'longitude': longitude,
       'maxParticipants': maxParticipants,
       'participantIds': participantIds,
       'ageRestriction': ageRestriction,
@@ -179,6 +190,13 @@ class DanceEventModel {
 
   static DateTime? _dateFromDynamic(dynamic value) {
     if (value is Timestamp) return value.toDate();
+    return null;
+  }
+
+  static double? _doubleFromDynamic(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
     return null;
   }
 }
