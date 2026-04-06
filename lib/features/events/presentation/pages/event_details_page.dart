@@ -231,6 +231,24 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
           appBar: AppBar(
             title: const Text('Мероприятие'),
             scrolledUnderElevation: 0,
+            leadingWidth: 64,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 12),
+              child: AppButton(
+                iconWidget: const SvgIcon(
+                  AppIcons.back,
+                  size: 20,
+                  color: AppColors.gray0,
+                ),
+                onTap: () => Navigator.of(context).pop(),
+                style: const AppButtonStyle(
+                  width: 40,
+                  height: 40,
+                  padding: EdgeInsets.zero,
+                  backgroundColor: Colors.transparent,
+                ),
+              ),
+            ),
             actions:
                 isOwner
                     ? [
