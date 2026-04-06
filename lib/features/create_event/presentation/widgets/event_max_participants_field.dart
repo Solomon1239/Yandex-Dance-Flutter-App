@@ -31,9 +31,9 @@ class EventMaxParticipantsField extends StatelessWidget {
       children: [
         Text(
           'Максимальное количество участников',
-          style: AppTextTheme.body3Regular20pt,
+          style: AppTextTheme.body4Medium16pt,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         AppTextField(
           hint: '20',
           state: state,
@@ -45,6 +45,8 @@ class EventMaxParticipantsField extends StatelessWidget {
           inputFormatters: FilteringTextInputFormatter.digitsOnly,
           keyboardType: TextInputType.number,
           textInputAction: TextInputAction.done,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          hintStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           onChanged: onChanged,
           onStateChange: onStateChange,
         ),

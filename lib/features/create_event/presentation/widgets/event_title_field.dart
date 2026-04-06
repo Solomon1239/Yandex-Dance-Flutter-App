@@ -30,8 +30,8 @@ class EventTitleField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Название мероприятия', style: AppTextTheme.body3Regular20pt),
-        const SizedBox(height: 8),
+        Text('Название мероприятия', style: AppTextTheme.body4Medium16pt),
+        const SizedBox(height: 6),
         AppTextField(
           hint: 'Введите название',
           state: state,
@@ -41,6 +41,8 @@ class EventTitleField extends StatelessWidget {
           validator: validator,
           textInputAction: TextInputAction.next,
           nextFocusNode: nextFocusNode,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          hintStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           onChanged: onChanged,
           onStateChange: onStateChange,
         ),

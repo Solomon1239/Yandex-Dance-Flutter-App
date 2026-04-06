@@ -35,6 +35,8 @@ abstract interface class EventRepository {
     required DanceStyle danceStyle,
     required DateTime dateTime,
     required String address,
+    double? latitude,
+    double? longitude,
     required int maxParticipants,
     required String ageRestriction,
     required String creatorId,
@@ -54,17 +56,11 @@ abstract interface class EventRepository {
   /// Добавляет пользователя в участники мероприятия
   /// (через `arrayUnion`, так что двойного добавления не будет).
   /// Возвращает свежую версию мероприятия после обновления.
-  Future<DanceEvent> joinEvent({
-    required String eventId,
-    required String uid,
-  });
+  Future<DanceEvent> joinEvent({required String eventId, required String uid});
 
   /// Убирает пользователя из participantIds (через `arrayRemove`).
   /// Возвращает свежую версию мероприятия.
-  Future<DanceEvent> leaveEvent({
-    required String eventId,
-    required String uid,
-  });
+  Future<DanceEvent> leaveEvent({required String eventId, required String uid});
 
   /// Обновляет обложку у существующего мероприятия: оптимизирует
   /// картинку, делает thumbnail, заливает в `event_covers/{eventId}/...`,

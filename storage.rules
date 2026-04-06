@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Аватары профиля: user_avatars/{uid}/...
+    match /user_avatars/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // Видео профиля: user_videos/{uid}/...
+    match /user_videos/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // Обложки мероприятий: event_covers/{uid}/...
+    match /event_covers/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // Видео мероприятий: event_videos/{uid}/...
+    match /event_videos/{userId}/{allPaths=**} {
+      allow read: if signedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // Остальное запрещено.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
