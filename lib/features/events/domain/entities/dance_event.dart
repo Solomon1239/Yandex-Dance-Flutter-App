@@ -13,6 +13,8 @@ class DanceEvent extends Equatable {
     required this.danceStyle,
     required this.dateTime,
     required this.address,
+    this.latitude,
+    this.longitude,
     required this.maxParticipants,
     required this.participantIds,
     required this.ageRestriction,
@@ -37,6 +39,8 @@ class DanceEvent extends Equatable {
   final DanceStyle danceStyle;
   final DateTime dateTime;
   final String address;
+  final double? latitude;
+  final double? longitude;
   final int maxParticipants;
   final List<String> participantIds;
   final String ageRestriction;
@@ -68,6 +72,8 @@ class DanceEvent extends Equatable {
     DanceStyle? danceStyle,
     DateTime? dateTime,
     String? address,
+    double? latitude,
+    double? longitude,
     int? maxParticipants,
     List<String>? participantIds,
     String? ageRestriction,
@@ -90,6 +96,8 @@ class DanceEvent extends Equatable {
       danceStyle: danceStyle ?? this.danceStyle,
       dateTime: dateTime ?? this.dateTime,
       address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
       maxParticipants: maxParticipants ?? this.maxParticipants,
       participantIds: participantIds ?? this.participantIds,
       ageRestriction: ageRestriction ?? this.ageRestriction,
@@ -117,6 +125,8 @@ class DanceEvent extends Equatable {
     danceStyle,
     dateTime,
     address,
+    latitude,
+    longitude,
     maxParticipants,
     participantIds,
     ageRestriction,

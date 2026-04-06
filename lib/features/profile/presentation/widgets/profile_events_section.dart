@@ -27,10 +27,7 @@ class ProfileEventsSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Row(
             children: [
-              Text(
-                'Мероприятия',
-                style: AppTextTheme.body3Regular20pt,
-              ),
+              Text('Мероприятия', style: AppTextTheme.body3Regular20pt),
               const Spacer(),
               AppButton(
                 onTap: onSeeAll,
@@ -63,7 +60,7 @@ class ProfileEventsSection extends StatelessWidget {
           )
         else
           SizedBox(
-            height: 170,
+            height: 188,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -97,7 +94,7 @@ class _EventMiniCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: 96,
+            height: 90,
             width: double.infinity,
             child:
                 event.coverThumbUrl != null
@@ -122,7 +119,7 @@ class _EventMiniCard extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -135,6 +132,8 @@ class _EventMiniCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     DateFormat('dd MMM, HH:mm').format(event.dateTime),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextTheme.body2Regular14pt.copyWith(
                       color: AppColors.gray100,
                     ),
@@ -142,6 +141,8 @@ class _EventMiniCard extends StatelessWidget {
                   const Spacer(),
                   Text(
                     event.danceStyle.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextTheme.body3RegularPurple14pt.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

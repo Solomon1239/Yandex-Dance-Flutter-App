@@ -156,9 +156,7 @@ class _UpcomingEventTile extends StatelessWidget {
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          DateFormat(
-                            'dd MMM, HH:mm',
-                          ).format(event.dateTime),
+                          DateFormat('dd MMM, HH:mm').format(event.dateTime),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: AppTextTheme.body2Regular14pt.copyWith(
@@ -189,9 +187,11 @@ class _UpcomingEventTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 8),
                   Text(
                     event.danceStyle.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTextTheme.body3RegularPurple14pt.copyWith(
                       fontWeight: FontWeight.w600,
                     ),

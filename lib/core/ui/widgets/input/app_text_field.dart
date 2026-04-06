@@ -32,6 +32,8 @@ class AppTextField extends StatefulWidget {
     this.autofillHints,
     this.textInputAction,
     this.onSubmitted,
+    this.textStyle,
+    this.hintStyle,
   });
 
   final String hint;
@@ -57,6 +59,8 @@ class AppTextField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final TextStyle? textStyle;
+  final TextStyle? hintStyle;
 
   @override
   State<AppTextField> createState() => AppTextFieldState();
@@ -206,9 +210,9 @@ class AppTextFieldState extends State<AppTextField> {
                   widget.onStateChange?.call(newState);
                 }
               },
-              style: AppTextTheme.body1Medium18pt.copyWith(
-                color: resolver.textColor,
-              ),
+              style: AppTextTheme.body1Medium18pt
+                  .copyWith(color: resolver.textColor)
+                  .merge(widget.textStyle),
               onFieldSubmitted: (_) {
                 widget.onSubmitted?.call(widget.contoller.text);
                 if (widget.onValidateExternally != null) {
@@ -272,9 +276,9 @@ class AppTextFieldState extends State<AppTextField> {
                   ),
                 ),
                 hintText: widget.hint,
-                hintStyle: AppTextTheme.body1Medium18pt.copyWith(
-                  color: AppColors.gray100.withValues(alpha: 0.70),
-                ),
+                hintStyle: AppTextTheme.body1Medium18pt
+                    .copyWith(color: AppColors.gray100.withValues(alpha: 0.70))
+                    .merge(widget.hintStyle),
                 labelStyle: AppTextTheme.body2Regular14pt.copyWith(
                   color: AppColors.gray100,
                 ),
