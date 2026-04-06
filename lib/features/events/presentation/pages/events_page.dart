@@ -45,8 +45,7 @@ class EventsPage extends StatefulWidget {
 class _EventsPageState extends State<EventsPage> {
   static const _allGenresLabel = 'Все';
   static const _anyDateFilterLabel = 'Любая дата';
-  static const _allSeatsFilterLabel = 'Все места';
-  static const _availableSeatsFilterLabel = 'Есть места';
+  static const _anyAgeFilterLabel = 'Любой возраст';
 
   late final TextEditingController _searchEventsController;
   late final Stream<List<DanceEvent>> _eventsStream;
@@ -57,7 +56,7 @@ class _EventsPageState extends State<EventsPage> {
   _EventsViewMode _viewMode = _EventsViewMode.list;
   final Set<String> _selectedGenres = {_allGenresLabel};
   String _selectedDateFilter = _anyDateFilterLabel;
-  String _selectedSeatsFilter = _allSeatsFilterLabel;
+  String _selectedAgeFilter = _anyAgeFilterLabel;
   final Map<String, String> _creatorNames = {};
   final Set<String> _creatorNamesLoading = {};
 
@@ -67,7 +66,10 @@ class _EventsPageState extends State<EventsPage> {
     ).push(MaterialPageRoute(builder: (_) => EventDetailsPage(event: event)));
   }
 
-  Future<void> _openFiltersModal(List<String> genres) async {
+  Future<void> _openFiltersModal(
+    List<String> genres,
+    List<String> ageOptions,
+  ) async {
     final result = await showModalBottomSheet<_EventsFiltersResult>(
       context: context,
       showDragHandle: true,
@@ -75,9 +77,10 @@ class _EventsPageState extends State<EventsPage> {
       builder:
           (context) => _EventsFiltersSheet(
             genres: genres,
+            ageOptions: ageOptions,
             selectedGenres: _selectedGenres,
             selectedDateFilter: _selectedDateFilter,
-            selectedSeatsFilter: _selectedSeatsFilter,
+            selectedAgeFilter: _selectedAgeFilter,
           ),
     );
 
@@ -87,7 +90,7 @@ class _EventsPageState extends State<EventsPage> {
         ..clear()
         ..addAll(result.selectedGenres);
       _selectedDateFilter = result.selectedDateFilter;
-      _selectedSeatsFilter = result.selectedSeatsFilter;
+      _selectedAgeFilter = result.selectedAgeFilter;
     });
   }
 
@@ -237,6 +240,10 @@ class _EventsPageState extends State<EventsPage> {
                 _allGenresLabel,
                 ...{for (final event in events) event.styleLabel},
               ];
+              final ageOptions = [
+                _anyAgeFilterLabel,
+                ...{for (final event in events) event.ageRestrictionLabel},
+              ];
 
               final filteredEvents =
                   events.where((event) {
@@ -253,8 +260,8 @@ class _EventsPageState extends State<EventsPage> {
                       return false;
                     }
 
-                    if (_selectedSeatsFilter == _availableSeatsFilterLabel &&
-                        !event.hasFreeSpots) {
+                    if (_selectedAgeFilter != _anyAgeFilterLabel &&
+                        event.ageRestrictionLabel != _selectedAgeFilter) {
                       return false;
                     }
 
@@ -338,7 +345,7 @@ class _EventsPageState extends State<EventsPage> {
                       AppButton(
                         iconWidget: const SvgIcon(AppIcons.funnel, size: 20),
                         label: 'Фильтры',
-                        onTap: () => _openFiltersModal(genres),
+                        onTap: () => _openFiltersModal(genres, ageOptions),
                         style: const AppButtonStyle(
                           height: 44,
                           backgroundColor: Colors.transparent,
