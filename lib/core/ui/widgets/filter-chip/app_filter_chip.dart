@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:yandex_dance/core/ui/colors/colors.dart'; 
+import 'package:yandex_dance/core/ui/colors/colors.dart';
 
 class ChipItem {
   final String label;
@@ -31,6 +31,56 @@ class AppFilterChipColors {
     this.unselectedBorderColor,
     this.textColor,
   });
+}
+
+class AppFilterChipGroup extends StatelessWidget {
+  final List<ChipItem> items;
+  final Set<String> selectedLabels;
+  final AppFilterChipColors? chipColors;
+  final double spacing;
+  final EdgeInsetsGeometry padding;
+  final bool scrollable;
+
+  const AppFilterChipGroup({
+    super.key,
+    required this.items,
+    required this.selectedLabels,
+    this.chipColors,
+    this.spacing = 8,
+    this.padding = EdgeInsets.zero,
+    this.scrollable = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = [
+      for (var i = 0; i < items.length; i++) ...[
+        if (i > 0) SizedBox(width: spacing),
+        AppFilterChip(
+          label: items[i].label,
+          isSelected: selectedLabels.contains(items[i].label),
+          colors: chipColors,
+          prefixIcon: items[i].prefixIcon,
+          suffixIcon: items[i].suffixIcon,
+          onTap: items[i].onTap,
+        ),
+      ],
+    ];
+
+    final content = Padding(
+      padding: padding,
+      child: Row(mainAxisSize: MainAxisSize.min, children: chips),
+    );
+
+    if (scrollable) {
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: content,
+      );
+    }
+
+    return content;
+  }
 }
 
 class PreviewChipGroup extends StatefulWidget {
@@ -82,8 +132,7 @@ class _PreviewChipGroupState extends State<PreviewChipGroup> {
           );
         }
 
-        final int itemIndex =
-            widget.hasSelectAllChip ? index - 1 : index;
+        final int itemIndex = widget.hasSelectAllChip ? index - 1 : index;
         final bool isSelected = selectedIndexes.contains(itemIndex);
         final item = widget.items[itemIndex];
 
@@ -129,17 +178,18 @@ class AppFilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final gradient = isSelected
-        ? (colors?.selectedGradient ?? AppColors.gradient)
-        : null;
+    final gradient =
+        isSelected ? (colors?.selectedGradient ?? AppColors.gradient) : null;
 
-    final backgroundColor = isSelected
-        ? colors?.selectedBackgroundColor
-        : (colors?.unselectedBackgroundColor ?? Colors.transparent);
+    final backgroundColor =
+        isSelected
+            ? colors?.selectedBackgroundColor
+            : (colors?.unselectedBackgroundColor ?? Colors.transparent);
 
-    final borderColor = isSelected
-        ? (colors?.selectedBorderColor ?? Colors.transparent)
-        : (colors?.unselectedBorderColor ?? Colors.grey.shade500);
+    final borderColor =
+        isSelected
+            ? (colors?.selectedBorderColor ?? Colors.transparent)
+            : (colors?.unselectedBorderColor ?? Colors.grey.shade500);
 
     final textColor = colors?.textColor ?? Colors.white;
 
@@ -155,10 +205,7 @@ class AppFilterChip extends StatelessWidget {
             gradient: gradient,
             color: backgroundColor,
             borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              width: 1,
-              color: borderColor,
-            ),
+            border: Border.all(width: 1, color: borderColor),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -172,10 +219,7 @@ class AppFilterChip extends StatelessWidget {
               ],
               Text(
                 label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  color: textColor,
-                ),
+                style: TextStyle(fontWeight: FontWeight.w600, color: textColor),
               ),
               if (suffixIcon != null) ...[
                 const SizedBox(width: 6),
