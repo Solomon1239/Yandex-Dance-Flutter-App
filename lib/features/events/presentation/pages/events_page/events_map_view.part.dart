@@ -51,10 +51,6 @@ class _EventsMapViewState extends State<_EventsMapView> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.events.isEmpty) {
-      return const Center(child: Text('Ничего не найдено'));
-    }
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
       child: LayoutBuilder(
@@ -80,7 +76,13 @@ class _EventsMapViewState extends State<_EventsMapView> {
                 rotateGesturesEnabled: true,
                 tiltGesturesEnabled: true,
                 initialCameraPosition: CameraPosition(
-                  target: _centerOf(widget.events),
+                  target:
+                      widget.events.isEmpty
+                          ? const LatLng(
+                            _fallbackMapCenterLat,
+                            _fallbackMapCenterLng,
+                          )
+                          : _centerOf(widget.events),
                   zoom: 12,
                 ),
                 onMapCreated: (controller) {
@@ -107,6 +109,33 @@ class _EventsMapViewState extends State<_EventsMapView> {
                   child: _EventPreviewPlate(
                     event: _selectedEvent!,
                     onTap: () => widget.onOpenEvent(_selectedEvent!),
+                  ),
+                ),
+              if (widget.events.isEmpty)
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  top: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gray500.withValues(alpha: 0.88),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.gray100.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: const Text(
+                      'Ничего не найдено. Попробуй изменить фильтры.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.gray100,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
             ],
