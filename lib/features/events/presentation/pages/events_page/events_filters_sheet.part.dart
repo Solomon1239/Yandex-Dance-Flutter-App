@@ -4,26 +4,28 @@ class _EventsFiltersResult {
   const _EventsFiltersResult({
     required this.selectedGenres,
     required this.selectedDateFilter,
-    required this.selectedSeatsFilter,
+    required this.selectedAgeFilter,
   });
 
   final Set<String> selectedGenres;
   final String selectedDateFilter;
-  final String selectedSeatsFilter;
+  final String selectedAgeFilter;
 }
 
 class _EventsFiltersSheet extends StatefulWidget {
   const _EventsFiltersSheet({
     required this.genres,
+    required this.ageOptions,
     required this.selectedGenres,
     required this.selectedDateFilter,
-    required this.selectedSeatsFilter,
+    required this.selectedAgeFilter,
   });
 
   final List<String> genres;
+  final List<String> ageOptions;
   final Set<String> selectedGenres;
   final String selectedDateFilter;
-  final String selectedSeatsFilter;
+  final String selectedAgeFilter;
 
   @override
   State<_EventsFiltersSheet> createState() => _EventsFiltersSheetState();
@@ -32,19 +34,17 @@ class _EventsFiltersSheet extends StatefulWidget {
 class _EventsFiltersSheetState extends State<_EventsFiltersSheet> {
   static const _allGenresLabel = 'Все';
   static const _anyDateLabel = 'Любая дата';
-  static const _allSeatsLabel = 'Все места';
-  static const _availableSeatsLabel = 'Есть места';
 
   late Set<String> _selectedGenres;
   late String _selectedDateFilter;
-  late String _selectedSeatsFilter;
+  late String _selectedAgeFilter;
 
   @override
   void initState() {
     super.initState();
     _selectedGenres = Set<String>.from(widget.selectedGenres);
     _selectedDateFilter = widget.selectedDateFilter;
-    _selectedSeatsFilter = widget.selectedSeatsFilter;
+    _selectedAgeFilter = widget.selectedAgeFilter;
   }
 
   void _toggleGenre(String genre) {
@@ -73,7 +73,7 @@ class _EventsFiltersSheetState extends State<_EventsFiltersSheet> {
     setState(() {
       _selectedGenres = {_allGenresLabel};
       _selectedDateFilter = _anyDateLabel;
-      _selectedSeatsFilter = _allSeatsLabel;
+      _selectedAgeFilter = widget.ageOptions.first;
     });
   }
 
@@ -134,27 +134,19 @@ class _EventsFiltersSheetState extends State<_EventsFiltersSheet> {
                 selectedLabels: {_selectedDateFilter},
               ),
               const SizedBox(height: 14),
-              Text('Места', style: Theme.of(context).textTheme.titleMedium),
+              Text('Возраст', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               AppFilterChipGroup(
                 scrollable: true,
                 items: [
-                  ChipItem(
-                    label: _allSeatsLabel,
-                    onTap:
-                        () => setState(
-                          () => _selectedSeatsFilter = _allSeatsLabel,
-                        ),
-                  ),
-                  ChipItem(
-                    label: _availableSeatsLabel,
-                    onTap:
-                        () => setState(
-                          () => _selectedSeatsFilter = _availableSeatsLabel,
-                        ),
-                  ),
+                  for (final ageOption in widget.ageOptions)
+                    ChipItem(
+                      label: ageOption,
+                      onTap:
+                          () => setState(() => _selectedAgeFilter = ageOption),
+                    ),
                 ],
-                selectedLabels: {_selectedSeatsFilter},
+                selectedLabels: {_selectedAgeFilter},
               ),
               const SizedBox(height: 18),
               Row(
@@ -184,7 +176,7 @@ class _EventsFiltersSheetState extends State<_EventsFiltersSheet> {
                           _EventsFiltersResult(
                             selectedGenres: _selectedGenres,
                             selectedDateFilter: _selectedDateFilter,
-                            selectedSeatsFilter: _selectedSeatsFilter,
+                            selectedAgeFilter: _selectedAgeFilter,
                           ),
                         );
                       },
