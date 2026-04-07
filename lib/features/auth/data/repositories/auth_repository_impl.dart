@@ -5,7 +5,10 @@ import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.d
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl({required AuthRemoteDataSource remote}) : _remote = remote;
+  AuthRepositoryImpl({
+    required AuthRemoteDataSource remote,
+    required Object profileRepository,
+  }) : _remote = remote;
 
   final AuthRemoteDataSource _remote;
 
