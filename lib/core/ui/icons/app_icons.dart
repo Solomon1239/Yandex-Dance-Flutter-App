@@ -16,6 +16,7 @@ class AppIcons {
   static const home = "assets/icons/home.svg";
   static const info = "assets/icons/info.svg";
   static const list = "assets/icons/list.svg";
+  static const location = "assets/icons/location.svg";
   static const lock = "assets/icons/lock.svg";
   static const mail = "assets/icons/mail.svg";
   static const map = "assets/icons/map.svg";

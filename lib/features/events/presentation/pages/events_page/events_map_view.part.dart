@@ -29,8 +29,11 @@ class _EventsMapViewState extends State<_EventsMapView> {
   Size _mapSize = Size.zero;
   var _isStyleLoaded = false;
   var _isSourceAndLayersReady = false;
+  var _isUserLocationLayerReady = false;
   var _isSyncingSource = false;
   var _sourceSyncRequested = false;
+  var _isSyncingUserLocationLayer = false;
+  var _userLocationSyncRequested = false;
   var _isPlateOffsetUpdating = false;
   var _plateOffsetUpdatePending = false;
   var _isProgrammaticZoomToEvent = false;
@@ -41,7 +44,6 @@ class _EventsMapViewState extends State<_EventsMapView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.events != widget.events) {
       _ensureSelectedEventIsVisible();
-      _fitCameraToEvents();
       _upsertEventsSourceAndLayers();
       _schedulePlateOffsetUpdate();
     }
@@ -70,6 +72,8 @@ class _EventsMapViewState extends State<_EventsMapView> {
               MapLibreMap(
                 styleString: _mapTilerStyleUrl,
                 trackCameraPosition: true,
+                myLocationEnabled: true,
+                myLocationTrackingMode: MyLocationTrackingMode.none,
                 gestureRecognizers: <Factory<OneSequenceGestureRecognizer>>{
                   Factory<OneSequenceGestureRecognizer>(
                     () => EagerGestureRecognizer(),
@@ -79,14 +83,8 @@ class _EventsMapViewState extends State<_EventsMapView> {
                 scrollGesturesEnabled: true,
                 rotateGesturesEnabled: true,
                 tiltGesturesEnabled: true,
-                initialCameraPosition: CameraPosition(
-                  target:
-                      widget.events.isEmpty
-                          ? const LatLng(
-                            _fallbackMapCenterLat,
-                            _fallbackMapCenterLng,
-                          )
-                          : _centerOf(widget.events),
+                initialCameraPosition: const CameraPosition(
+                  target: LatLng(_fallbackMapCenterLat, _fallbackMapCenterLng),
                   zoom: 12,
                 ),
                 onMapCreated: (controller) {
@@ -98,8 +96,14 @@ class _EventsMapViewState extends State<_EventsMapView> {
                 onStyleLoadedCallback: () {
                   _isStyleLoaded = true;
                   _isSourceAndLayersReady = false;
-                  _fitCameraToEvents();
+                  _isUserLocationLayerReady = false;
                   _upsertEventsSourceAndLayers();
+                },
+                onUserLocationUpdated: (location) {
+                  final nextLocation = location.position;
+                  if (_userLocation == nextLocation) return;
+                  _userLocation = nextLocation;
+                  _upsertUserLocationLayer();
                 },
                 onCameraIdle: _schedulePlateOffsetUpdate,
                 onMapClick: (point, __) {
@@ -148,8 +152,8 @@ class _EventsMapViewState extends State<_EventsMapView> {
                 child: AppButton(
                   onTap: _locateUser,
                   needLoading: true,
-                  iconWidget: const Icon(
-                    Icons.my_location_rounded,
+                  iconWidget: const SvgIcon(
+                    AppIcons.location,
                     size: 18,
                     color: AppColors.gray0,
                   ),
@@ -534,72 +538,77 @@ class _EventsMapViewState extends State<_EventsMapView> {
   }
 
   Future<void> _upsertUserLocationLayer() async {
+    if (_isSyncingUserLocationLayer) {
+      _userLocationSyncRequested = true;
+      return;
+    }
+
+    _isSyncingUserLocationLayer = true;
+    try {
+      do {
+        _userLocationSyncRequested = false;
+        await _upsertUserLocationLayerInternal();
+      } while (_userLocationSyncRequested);
+    } finally {
+      _isSyncingUserLocationLayer = false;
+    }
+  }
+
+  Future<void> _upsertUserLocationLayerInternal() async {
     final controller = _mapController;
     if (controller == null || !_isStyleLoaded) return;
 
     final geoJson = _buildUserLocationGeoJson();
-    try {
-      await controller.addSource(
-        _userLocationSourceId,
-        GeojsonSourceProperties(data: geoJson),
-      );
-      await controller.addLayer(
-        _userLocationSourceId,
-        _userLocationLayerId,
-        const CircleLayerProperties(
-          circleRadius: 7,
-          circleColor: '#2EA7FF',
-          circleStrokeColor: '#FFFFFF',
-          circleStrokeWidth: 2.5,
-          circleOpacity: 0.98,
-        ),
-        enableInteraction: false,
-      );
-    } catch (_) {
-      await controller.setGeoJsonSource(_userLocationSourceId, geoJson);
+    if (!_isUserLocationLayerReady) {
+      try {
+        await controller.addSource(
+          _userLocationSourceId,
+          GeojsonSourceProperties(data: geoJson),
+        );
+        await controller.addLayer(
+          _userLocationSourceId,
+          _userLocationLayerId,
+          const CircleLayerProperties(
+            circleRadius: 7,
+            circleColor: '#2EA7FF',
+            circleStrokeColor: '#FFFFFF',
+            circleStrokeWidth: 2.5,
+            circleOpacity: 0.98,
+          ),
+          enableInteraction: false,
+        );
+        _isUserLocationLayerReady = true;
+      } catch (_) {
+        await controller.setGeoJsonSource(_userLocationSourceId, geoJson);
+        _isUserLocationLayerReady = true;
+      }
+      return;
     }
+
+    await controller.setGeoJsonSource(_userLocationSourceId, geoJson);
   }
 
   Future<void> _locateUser() async {
     if (_isLocatingUser) return;
     _isLocatingUser = true;
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _showMapMessage('Включи геолокацию на устройстве');
+      final controller = _mapController;
+      if (controller == null) {
         return;
       }
 
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied) {
-        _showMapMessage('Доступ к геолокации не предоставлен');
+      final location = await controller.requestMyLocationLatLng();
+      if (location == null) {
+        _showMapMessage('Не удалось получить геолокацию');
         return;
       }
-      if (permission == LocationPermission.deniedForever) {
-        _showMapMessage('Разреши геолокацию в настройках приложения');
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10),
-        ),
-      );
-      final location = LatLng(position.latitude, position.longitude);
       _userLocation = location;
       await _upsertUserLocationLayer();
 
-      final controller = _mapController;
-      if (controller != null) {
-        await controller.animateCamera(
-          CameraUpdate.newLatLngZoom(location, 15.5),
-          duration: const Duration(milliseconds: 550),
-        );
-      }
+      await controller.animateCamera(
+        CameraUpdate.newLatLngZoom(location, 15.5),
+        duration: const Duration(milliseconds: 550),
+      );
     } catch (_) {
       _showMapMessage('Не удалось определить текущее местоположение');
     } finally {
@@ -685,34 +694,6 @@ class _EventsMapViewState extends State<_EventsMapView> {
     });
   }
 
-  Future<void> _fitCameraToEvents() async {
-    final controller = _mapController;
-    if (controller == null || !_isStyleLoaded || widget.events.isEmpty) {
-      return;
-    }
-
-    if (widget.events.length == 1) {
-      await controller.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(widget.events.first.latitude, widget.events.first.longitude),
-          13,
-        ),
-      );
-      return;
-    }
-
-    final bounds = _boundsOf(widget.events);
-    await controller.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        bounds,
-        left: 40,
-        top: 40,
-        right: 40,
-        bottom: 80,
-      ),
-    );
-  }
-
   void _ensureSelectedEventIsVisible() {
     if (_selectedEvent == null) return;
     final exists = widget.events.any((e) => e.id == _selectedEvent!.id);
@@ -720,35 +701,6 @@ class _EventsMapViewState extends State<_EventsMapView> {
       _selectedEvent = null;
       _selectedPlateOffset = null;
     }
-  }
-
-  LatLng _centerOf(List<EventPreview> source) {
-    var latSum = 0.0;
-    var lngSum = 0.0;
-    for (final event in source) {
-      latSum += event.latitude;
-      lngSum += event.longitude;
-    }
-    return LatLng(latSum / source.length, lngSum / source.length);
-  }
-
-  LatLngBounds _boundsOf(List<EventPreview> source) {
-    var minLat = source.first.latitude;
-    var maxLat = source.first.latitude;
-    var minLng = source.first.longitude;
-    var maxLng = source.first.longitude;
-
-    for (final event in source) {
-      minLat = event.latitude < minLat ? event.latitude : minLat;
-      maxLat = event.latitude > maxLat ? event.latitude : maxLat;
-      minLng = event.longitude < minLng ? event.longitude : minLng;
-      maxLng = event.longitude > maxLng ? event.longitude : maxLng;
-    }
-
-    return LatLngBounds(
-      southwest: LatLng(minLat, minLng),
-      northeast: LatLng(maxLat, maxLng),
-    );
   }
 }
 

@@ -3,7 +3,6 @@ import 'dart:math' show Point;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
