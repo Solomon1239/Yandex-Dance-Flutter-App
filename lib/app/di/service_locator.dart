@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:yandex_dance/core/services/geo/address_search_service.dart';
 import 'package:yandex_dance/core/services/geo/city_search_service.dart';
 import 'package:yandex_dance/core/services/media/image_optimizer.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
@@ -24,6 +25,12 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final sl = GetIt.instance;
+const _fallbackDadataToken = '0743c317d03c6061ed73fb541a8fd44375e40fd2';
+
+String get _dadataToken {
+  const envToken = String.fromEnvironment('DADATA_TOKEN');
+  return envToken.isNotEmpty ? envToken : _fallbackDadataToken;
+}
 
 Future<void> configureDependencies() async {
   sl
@@ -36,7 +43,12 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<MediaPickerService>(MediaPickerService.new)
     ..registerLazySingleton<ImageOptimizer>(ImageOptimizer.new)
     ..registerLazySingleton<VideoOptimizer>(VideoOptimizer.new)
-    ..registerLazySingleton<CitySearchService>(CitySearchService.new)
+    ..registerLazySingleton<AddressSearchService>(
+      () => AddressSearchService(token: _dadataToken),
+    )
+    ..registerLazySingleton<CitySearchService>(
+      () => CitySearchService(token: _dadataToken),
+    )
     ..registerLazySingleton<StorageService>(
       () => StorageService(sl<FirebaseStorage>()),
     );

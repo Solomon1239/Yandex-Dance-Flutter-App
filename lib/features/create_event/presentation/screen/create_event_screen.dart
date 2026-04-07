@@ -222,23 +222,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       );
 
       if (mounted) {
-        showDialog(
-          context: context,
-          builder:
-              (context) => AlertDialog(
-                title: const Text('Успешно!'),
-                content: const Text('Мероприятие успешно создано'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              ),
-        );
+        AppSnackBar.showSuccess(context, 'Мероприятие успешно создано');
+        Navigator.of(context).pop();
       }
     } on AppException catch (e) {
       if (mounted) {
