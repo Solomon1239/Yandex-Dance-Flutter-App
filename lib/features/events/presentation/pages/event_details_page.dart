@@ -281,7 +281,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
             child:
                 snapshot.connectionState == ConnectionState.waiting &&
                         !snapshot.hasData
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const _EventDetailsSkeleton()
                     : event == null
                     ? const Center(
                       child: Text('Мероприятие не найдено или удалено'),
@@ -357,14 +357,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                     if (participantsSnapshot.connectionState ==
                                             ConnectionState.waiting &&
                                         !participantsSnapshot.hasData) {
-                                      return const Padding(
-                                        padding: EdgeInsets.symmetric(
-                                          vertical: 8,
-                                        ),
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      );
+                                      return const _ParticipantsSkeleton();
                                     }
 
                                     final participants =
@@ -591,6 +584,153 @@ class _ParticipantRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _EventDetailsSkeleton extends StatelessWidget {
+  const _EventDetailsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                _DetailSkeletonBox(height: 260, radius: 24),
+                SizedBox(height: 20),
+                _DetailSkeletonBox(height: 32, width: 240, radius: 12),
+                SizedBox(height: 16),
+                _DetailMetaSkeletonRow(),
+                SizedBox(height: 10),
+                _DetailMetaSkeletonRow(widthFactor: 0.74),
+                SizedBox(height: 10),
+                _DetailMetaSkeletonRow(widthFactor: 0.58),
+                SizedBox(height: 10),
+                _DetailMetaSkeletonRow(widthFactor: 0.52),
+                SizedBox(height: 20),
+                _DetailSkeletonBox(height: 18, width: 220, radius: 10),
+                SizedBox(height: 10),
+                _DetailSkeletonBox(height: 18, radius: 10),
+                SizedBox(height: 8),
+                _DetailSkeletonBox(height: 18, radius: 10),
+                SizedBox(height: 8),
+                _DetailSkeletonBox(height: 18, width: 180, radius: 10),
+                SizedBox(height: 20),
+                _DetailSkeletonBox(height: 24, width: 120, radius: 10),
+                SizedBox(height: 10),
+                _ParticipantsSkeleton(),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: const _DetailSkeletonBox(height: 52, radius: 999),
+        ),
+      ],
+    );
+  }
+}
+
+class _ParticipantsSkeleton extends StatelessWidget {
+  const _ParticipantsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: const [
+        _ParticipantSkeletonRow(),
+        SizedBox(height: 10),
+        _ParticipantSkeletonRow(),
+        SizedBox(height: 10),
+        _ParticipantSkeletonRow(),
+      ],
+    );
+  }
+}
+
+class _ParticipantSkeletonRow extends StatelessWidget {
+  const _ParticipantSkeletonRow();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: const [
+        _DetailSkeletonCircle(size: 36),
+        SizedBox(width: 10),
+        Expanded(child: _DetailSkeletonBox(height: 18, radius: 10)),
+      ],
+    );
+  }
+}
+
+class _DetailMetaSkeletonRow extends StatelessWidget {
+  const _DetailMetaSkeletonRow({this.widthFactor = 0.82});
+
+  final double widthFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const _DetailSkeletonBox(width: 20, height: 20, radius: 8),
+        const SizedBox(width: 10),
+        Expanded(
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: widthFactor,
+            child: const _DetailSkeletonBox(height: 18, radius: 10),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailSkeletonCircle extends StatelessWidget {
+  const _DetailSkeletonCircle({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return _DetailSkeletonBox(width: size, height: size, radius: size / 2);
+  }
+}
+
+class _DetailSkeletonBox extends StatelessWidget {
+  const _DetailSkeletonBox({
+    this.width,
+    this.height = 16,
+    this.radius = 12,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.gray400.withValues(alpha: 0.95),
+            AppColors.gray300.withValues(alpha: 0.42),
+          ],
+        ),
+      ),
     );
   }
 }

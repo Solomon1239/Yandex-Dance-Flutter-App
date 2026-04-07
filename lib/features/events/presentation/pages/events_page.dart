@@ -288,7 +288,7 @@ class _EventsPageState extends State<EventsPage> {
               Key contentKey;
               if (snapshot.connectionState == ConnectionState.waiting &&
                   !snapshot.hasData) {
-                content = const Center(child: CircularProgressIndicator());
+                content = _EventsPageSkeleton(viewMode: _viewMode);
                 contentKey = const ValueKey('events-loading');
               } else if (snapshot.hasError) {
                 content = const Center(
@@ -401,3 +401,197 @@ class _EventsPageState extends State<EventsPage> {
 }
 
 enum _EventsViewMode { list, map }
+
+class _EventsPageSkeleton extends StatelessWidget {
+  const _EventsPageSkeleton({required this.viewMode});
+
+  final _EventsViewMode viewMode;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const _SkeletonBox(height: 56, radius: 20),
+        const SizedBox(height: 14),
+        Row(
+          children: const [
+            _SkeletonBox(width: 100, height: 44, radius: 999),
+            SizedBox(width: 12),
+            Expanded(child: _SkeletonBox(height: 44, radius: 999)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Divider(color: AppColors.gray100.withValues(alpha: 0.2)),
+        const SizedBox(height: 10),
+        Expanded(
+          child:
+              viewMode == _EventsViewMode.list
+                  ? ListView.separated(
+                    itemCount: 3,
+                    separatorBuilder: (_, __) => const SizedBox(height: 18),
+                    itemBuilder: (_, __) => const _EventCardSkeleton(),
+                  )
+                  : const _EventsMapSkeleton(),
+        ),
+      ],
+    );
+  }
+}
+
+class _EventCardSkeleton extends StatelessWidget {
+  const _EventCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF101010),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x40000000),
+            blurRadius: 30,
+            offset: Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            child: const AspectRatio(
+              aspectRatio: 1.18,
+              child: _SkeletonBox(radius: 0),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const _SkeletonBox(height: 28, width: 190, radius: 12),
+                const SizedBox(height: 10),
+                const _SkeletonBox(height: 18, width: 140, radius: 10),
+                const SizedBox(height: 18),
+                const _EventMetaSkeletonRow(),
+                const SizedBox(height: 12),
+                const _EventMetaSkeletonRow(),
+                const SizedBox(height: 12),
+                const _EventMetaSkeletonRow(widthFactor: 0.62),
+                const SizedBox(height: 12),
+                Divider(color: Colors.white.withValues(alpha: 0.1)),
+                const SizedBox(height: 12),
+                Row(
+                  children: const [
+                    _SkeletonCircle(size: 40),
+                    SizedBox(width: 12),
+                    Expanded(child: _SkeletonBox(height: 18, radius: 10)),
+                    SizedBox(width: 12),
+                    _SkeletonBox(width: 36, height: 18, radius: 10),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EventMetaSkeletonRow extends StatelessWidget {
+  const _EventMetaSkeletonRow({this.widthFactor = 0.78});
+
+  final double widthFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const _SkeletonBox(width: 20, height: 20, radius: 8),
+        const SizedBox(width: 12),
+        Expanded(
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: widthFactor,
+            child: const _SkeletonBox(height: 18, radius: 10),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _EventsMapSkeleton extends StatelessWidget {
+  const _EventsMapSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        color: AppColors.gray400,
+      ),
+      child: Stack(
+        children: const [
+          Positioned.fill(child: _SkeletonBox(radius: 20)),
+          Positioned(
+            left: 12,
+            right: 12,
+            top: 12,
+            child: _SkeletonBox(height: 44, radius: 12),
+          ),
+          Positioned(
+            right: 12,
+            bottom: 12,
+            child: _SkeletonCircle(size: 42),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SkeletonCircle extends StatelessWidget {
+  const _SkeletonCircle({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return _SkeletonBox(width: size, height: size, radius: size / 2);
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({
+    this.width,
+    this.height = 16,
+    this.radius = 12,
+  });
+
+  final double? width;
+  final double height;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.gray400.withValues(alpha: 0.95),
+            AppColors.gray300.withValues(alpha: 0.42),
+          ],
+        ),
+      ),
+    );
+  }
+}
