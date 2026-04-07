@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:yandex_dance/core/services/geo/address_search_service.dart';
 import 'package:yandex_dance/core/services/geo/city_search_service.dart';
 import 'package:yandex_dance/core/services/media/image_optimizer.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
@@ -34,73 +33,82 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<GoogleSignIn>(() => GoogleSignIn.instance);
 
   sl
-    ..registerLazySingleton(MediaPickerService.new)
-    ..registerLazySingleton(ImageOptimizer.new)
-    ..registerLazySingleton(VideoOptimizer.new)
-    ..registerLazySingleton(() => StorageService(sl()))
-    ..registerLazySingleton(
-      () => AddressSearchService(
-        token: '0743c317d03c6061ed73fb541a8fd44375e40fd2',
-      ),
-    )
-    ..registerLazySingleton(
-      () =>
-          CitySearchService(token: '0743c317d03c6061ed73fb541a8fd44375e40fd2'),
+    ..registerLazySingleton<MediaPickerService>(MediaPickerService.new)
+    ..registerLazySingleton<ImageOptimizer>(ImageOptimizer.new)
+    ..registerLazySingleton<VideoOptimizer>(VideoOptimizer.new)
+    ..registerLazySingleton<CitySearchService>(CitySearchService.new)
+    ..registerLazySingleton<StorageService>(
+      () => StorageService(sl<FirebaseStorage>()),
     );
 
   sl
-    ..registerLazySingleton(
-      () => AuthRemoteDataSource(auth: sl(), googleSignIn: sl()),
+    ..registerLazySingleton<AuthRemoteDataSource>(
+      () => AuthRemoteDataSource(
+        auth: sl<FirebaseAuth>(),
+        googleSignIn: sl<GoogleSignIn>(),
+      ),
     )
-    ..registerLazySingleton(() => ProfileRemoteDataSource(firestore: sl()))
-    ..registerLazySingleton(() => EventRemoteDataSource(firestore: sl()));
+    ..registerLazySingleton<ProfileRemoteDataSource>(
+      () => ProfileRemoteDataSource(firestore: sl<FirebaseFirestore>()),
+    )
+    ..registerLazySingleton<EventRemoteDataSource>(
+      () => EventRemoteDataSource(firestore: sl<FirebaseFirestore>()),
+    );
 
   sl
     ..registerLazySingleton<ProfileRepository>(
       () => ProfileRepositoryImpl(
-        remote: sl(),
-        storageService: sl(),
-        imageOptimizer: sl(),
-        videoOptimizer: sl(),
+        remote: sl<ProfileRemoteDataSource>(),
+        storageService: sl<StorageService>(),
+        imageOptimizer: sl<ImageOptimizer>(),
+        videoOptimizer: sl<VideoOptimizer>(),
       ),
     )
     ..registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(remote: sl()),
+      () => AuthRepositoryImpl(
+        remote: sl<AuthRemoteDataSource>(),
+        profileRepository: sl<ProfileRepository>(),
+      ),
     )
     ..registerLazySingleton<EventRepository>(
       () => EventRepositoryImpl(
-        remote: sl(),
-        storageService: sl(),
-        imageOptimizer: sl(),
-        videoOptimizer: sl(),
+        remote: sl<EventRemoteDataSource>(),
+        storageService: sl<StorageService>(),
+        imageOptimizer: sl<ImageOptimizer>(),
+        videoOptimizer: sl<VideoOptimizer>(),
       ),
     );
 
-  sl.registerLazySingleton(
-    () => AppSessionManager(authRepository: sl(), profileRepository: sl()),
+  sl.registerLazySingleton<AppSessionManager>(
+    () => AppSessionManager(
+      authRepository: sl<AuthRepository>(),
+      profileRepository: sl<ProfileRepository>(),
+    ),
   );
 
-  sl.registerFactory(() => AuthManager(sl()));
-  sl.registerFactory(
+  sl.registerFactory<AuthManager>(
+    () => AuthManager(sl<AuthRepository>()),
+  );
+  sl.registerFactory<StyleSelectionManager>(
     () => StyleSelectionManager(
-      profileRepository: sl(),
-      authRepository: sl(),
-      mediaPickerService: sl(),
+      profileRepository: sl<ProfileRepository>(),
+      authRepository: sl<AuthRepository>(),
+      mediaPickerService: sl<MediaPickerService>(),
     ),
   );
-  sl.registerFactory(
+  sl.registerFactory<ProfileManager>(
     () => ProfileManager(
-      profileRepository: sl(),
-      authRepository: sl(),
-      eventRepository: sl(),
-      mediaPickerService: sl(),
+      profileRepository: sl<ProfileRepository>(),
+      authRepository: sl<AuthRepository>(),
+      eventRepository: sl<EventRepository>(),
+      mediaPickerService: sl<MediaPickerService>(),
     ),
   );
-  sl.registerFactory(
+  sl.registerFactory<EditProfileManager>(
     () => EditProfileManager(
-      profileRepository: sl(),
-      authRepository: sl(),
-      mediaPickerService: sl(),
+      profileRepository: sl<ProfileRepository>(),
+      authRepository: sl<AuthRepository>(),
+      mediaPickerService: sl<MediaPickerService>(),
     ),
   );
 }
