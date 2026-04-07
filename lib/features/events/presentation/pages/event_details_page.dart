@@ -3,17 +3,16 @@ import 'package:intl/intl.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
-import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
-import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/snackbar/app_snackbar.dart';
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
 import 'package:yandex_dance/features/events/domain/entities/dance_event.dart';
 import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
 import 'package:yandex_dance/features/events/presentation/models/event_preview.dart';
+import 'package:yandex_dance/features/events/presentation/pages/edit_event_screen.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
 
 class EventDetailsPage extends StatefulWidget {
@@ -180,11 +179,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Future<void> _editEvent(DanceEvent event) async {
-    final payload = await showModalBottomSheet<_EditEventPayload>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _EditEventSheet(event: event),
+    final payload = await Navigator.of(context).push<EditEventResult>(
+      MaterialPageRoute(builder: (_) => EditEventScreen(event: event)),
     );
     if (payload == null || _isOwnerActionInProgress) return;
 
@@ -196,6 +192,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         danceStyle: payload.danceStyle,
         dateTime: payload.dateTime,
         address: payload.address,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
         maxParticipants: payload.maxParticipants,
         ageRestriction: payload.ageRestriction,
       );
@@ -593,375 +591,6 @@ class _ParticipantRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _EditEventPayload {
-  const _EditEventPayload({
-    required this.title,
-    required this.description,
-    required this.danceStyle,
-    required this.dateTime,
-    required this.address,
-    required this.maxParticipants,
-    required this.ageRestriction,
-  });
-
-  final String title;
-  final String description;
-  final DanceStyle danceStyle;
-  final DateTime dateTime;
-  final String address;
-  final int maxParticipants;
-  final String ageRestriction;
-}
-
-class _EditEventSheet extends StatefulWidget {
-  const _EditEventSheet({required this.event});
-
-  final DanceEvent event;
-
-  @override
-  State<_EditEventSheet> createState() => _EditEventSheetState();
-}
-
-class _EditEventSheetState extends State<_EditEventSheet> {
-  static const _ageOptions = ['Для всех', '12+', '14+', '16+', '18+'];
-  static const _compactInputTextStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w500,
-    height: 1.2,
-  );
-  static const _compactHintTextStyle = TextStyle(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    height: 1.2,
-  );
-
-  final _dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
-
-  late final TextEditingController _titleController;
-  late final TextEditingController _descriptionController;
-  late final TextEditingController _addressController;
-  late final TextEditingController _maxParticipantsController;
-  late final FocusNode _titleFocusNode;
-  late final FocusNode _descriptionFocusNode;
-  late final FocusNode _addressFocusNode;
-  late final FocusNode _maxParticipantsFocusNode;
-
-  var _titleState = InputState.initial;
-  var _descriptionState = InputState.initial;
-  var _addressState = InputState.initial;
-  var _maxParticipantsState = InputState.initial;
-
-  var _titleTouched = false;
-  var _descriptionTouched = false;
-  var _addressTouched = false;
-  var _maxParticipantsTouched = false;
-
-  late DanceStyle _selectedDanceStyle;
-  late DateTime _selectedDateTime;
-  late String _selectedAgeRestriction;
-
-  String? _errorText;
-
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController(text: widget.event.title);
-    _descriptionController = TextEditingController(
-      text: widget.event.description,
-    );
-    _addressController = TextEditingController(text: widget.event.address);
-    _maxParticipantsController = TextEditingController(
-      text: widget.event.maxParticipants.toString(),
-    );
-    _titleFocusNode = FocusNode();
-    _descriptionFocusNode = FocusNode();
-    _addressFocusNode = FocusNode();
-    _maxParticipantsFocusNode = FocusNode();
-    _selectedDanceStyle = widget.event.danceStyle;
-    _selectedDateTime = widget.event.dateTime;
-    _selectedAgeRestriction =
-        widget.event.ageRestriction.trim().isEmpty
-            ? 'Для всех'
-            : widget.event.ageRestriction;
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _addressController.dispose();
-    _maxParticipantsController.dispose();
-    _titleFocusNode.dispose();
-    _descriptionFocusNode.dispose();
-    _addressFocusNode.dispose();
-    _maxParticipantsFocusNode.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickDateTime() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _selectedDateTime,
-      firstDate: DateTime.now().subtract(const Duration(days: 1)),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
-    );
-    if (date == null || !mounted) return;
-
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
-    );
-    if (time == null || !mounted) return;
-
-    setState(() {
-      _selectedDateTime = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        time.hour,
-        time.minute,
-      );
-    });
-  }
-
-  void _submit() {
-    final title = _titleController.text.trim();
-    final description = _descriptionController.text.trim();
-    final address = _addressController.text.trim();
-    final maxParticipants = int.tryParse(
-      _maxParticipantsController.text.trim(),
-    );
-
-    if (title.isEmpty || description.isEmpty || address.isEmpty) {
-      setState(() {
-        _errorText = 'Заполни название, описание и адрес';
-      });
-      return;
-    }
-
-    if (maxParticipants == null || maxParticipants < 1) {
-      setState(() {
-        _errorText = 'Введите корректное количество мест';
-      });
-      return;
-    }
-
-    if (maxParticipants < widget.event.currentParticipants) {
-      setState(() {
-        _errorText =
-            'Количество мест не может быть меньше текущих участников (${widget.event.currentParticipants})';
-      });
-      return;
-    }
-
-    Navigator.of(context).pop(
-      _EditEventPayload(
-        title: title,
-        description: description,
-        danceStyle: _selectedDanceStyle,
-        dateTime: _selectedDateTime,
-        address: address,
-        maxParticipants: maxParticipants,
-        ageRestriction: _selectedAgeRestriction,
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final insetBottom = MediaQuery.of(context).viewInsets.bottom;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(16, 8, 16, insetBottom + 16),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Редактирование мероприятия',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 12),
-              const _FieldLabel('Название'),
-              AppTextField(
-                hint: 'Название',
-                state: _titleState,
-                contoller: _titleController,
-                textStyle: _compactInputTextStyle,
-                hintStyle: _compactHintTextStyle,
-                touched: _titleTouched,
-                focusNode: _titleFocusNode,
-                nextFocusNode: _descriptionFocusNode,
-                onChanged: (_) => setState(() => _titleTouched = true),
-                onFocusChange: () => setState(() => _titleTouched = true),
-                onUnfocus: () => setState(() => _titleTouched = true),
-                onStateChange: (value) => setState(() => _titleState = value),
-              ),
-              const SizedBox(height: 10),
-              const _FieldLabel('Описание'),
-              AppTextField(
-                hint: 'Описание',
-                state: _descriptionState,
-                contoller: _descriptionController,
-                textStyle: _compactInputTextStyle,
-                hintStyle: _compactHintTextStyle,
-                touched: _descriptionTouched,
-                focusNode: _descriptionFocusNode,
-                nextFocusNode: _addressFocusNode,
-                isLongText: true,
-                onChanged: (_) => setState(() => _descriptionTouched = true),
-                onFocusChange: () => setState(() => _descriptionTouched = true),
-                onUnfocus: () => setState(() => _descriptionTouched = true),
-                onStateChange:
-                    (value) => setState(() => _descriptionState = value),
-              ),
-              const SizedBox(height: 10),
-              const _FieldLabel('Адрес'),
-              AppTextField(
-                hint: 'Адрес',
-                state: _addressState,
-                contoller: _addressController,
-                textStyle: _compactInputTextStyle,
-                hintStyle: _compactHintTextStyle,
-                touched: _addressTouched,
-                focusNode: _addressFocusNode,
-                nextFocusNode: _maxParticipantsFocusNode,
-                onChanged: (_) => setState(() => _addressTouched = true),
-                onFocusChange: () => setState(() => _addressTouched = true),
-                onUnfocus: () => setState(() => _addressTouched = true),
-                onStateChange: (value) => setState(() => _addressState = value),
-              ),
-              const SizedBox(height: 10),
-              const _FieldLabel('Количество мест'),
-              AppTextField(
-                hint: 'Количество мест',
-                state: _maxParticipantsState,
-                contoller: _maxParticipantsController,
-                textStyle: _compactInputTextStyle,
-                hintStyle: _compactHintTextStyle,
-                touched: _maxParticipantsTouched,
-                focusNode: _maxParticipantsFocusNode,
-                keyboardType: TextInputType.number,
-                onChanged:
-                    (_) => setState(() => _maxParticipantsTouched = true),
-                onFocusChange:
-                    () => setState(() => _maxParticipantsTouched = true),
-                onUnfocus: () => setState(() => _maxParticipantsTouched = true),
-                onStateChange:
-                    (value) => setState(() => _maxParticipantsState = value),
-              ),
-              const SizedBox(height: 10),
-              const _FieldLabel('Стиль'),
-              DropdownButtonFormField<DanceStyle>(
-                initialValue: _selectedDanceStyle,
-                decoration: const InputDecoration(),
-                items: [
-                  for (final style in DanceStyle.values)
-                    DropdownMenuItem(value: style, child: Text(style.title)),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _selectedDanceStyle = value);
-                },
-              ),
-              const SizedBox(height: 10),
-              const _FieldLabel('Возраст'),
-              DropdownButtonFormField<String>(
-                initialValue: _selectedAgeRestriction,
-                decoration: const InputDecoration(),
-                items: [
-                  for (final age in _ageOptions)
-                    DropdownMenuItem(value: age, child: Text(age)),
-                ],
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() => _selectedAgeRestriction = value);
-                },
-              ),
-              const SizedBox(height: 10),
-              const _FieldLabel('Дата и время'),
-              InkWell(
-                borderRadius: BorderRadius.circular(10),
-                onTap: _pickDateTime,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.schedule_outlined, size: 20),
-                      const SizedBox(width: 8),
-                      Text(_dateFormat.format(_selectedDateTime)),
-                    ],
-                  ),
-                ),
-              ),
-              if (_errorText != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _errorText!,
-                  style: const TextStyle(
-                    color: AppColors.pink500,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: 'Отмена',
-                      onTap: () => Navigator.of(context).pop(),
-                      style: const AppButtonStyle(
-                        height: 44,
-                        backgroundColor: Colors.transparent,
-                        border: AppButtonBorder(
-                          borderRadius: 999,
-                          borderWidth: 1,
-                          borderColor: AppColors.gray100,
-                          borderStyle: ButtonBorderStyle.solid,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: AppButton(
-                      label: 'Сохранить',
-                      onTap: _submit,
-                      style: AppButtonStyle.gradientFilled.copyWith(height: 44),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  const _FieldLabel(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 6),
-      child: Text(
-        text,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: AppColors.gray100,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
     );
   }
 }

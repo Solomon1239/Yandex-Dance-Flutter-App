@@ -12,6 +12,7 @@ import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 class EventAddressField extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
+  final FocusNode? nextFocusNode;
   final bool touched;
   final InputState state;
   final String? Function(String) validator;
@@ -25,6 +26,7 @@ class EventAddressField extends StatefulWidget {
     super.key,
     required this.controller,
     required this.focusNode,
+    this.nextFocusNode,
     required this.touched,
     required this.state,
     required this.validator,
@@ -149,10 +151,14 @@ class _EventAddressFieldState extends State<EventAddressField> {
           state: widget.state,
           contoller: widget.controller,
           focusNode: widget.focusNode,
+          nextFocusNode: widget.nextFocusNode,
           touched: widget.touched,
           validator: widget.validator,
           isLongText: false,
-          textInputAction: TextInputAction.done,
+          textInputAction:
+              widget.nextFocusNode == null
+                  ? TextInputAction.done
+                  : TextInputAction.next,
           textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           hintStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           onChanged: _onTextChanged,
