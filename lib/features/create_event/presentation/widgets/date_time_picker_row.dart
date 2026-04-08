@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 
 class DateTimePickerRow extends StatelessWidget {
@@ -246,7 +247,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             ),
             child: Column(
               children: [
-                GestureDetector(
+                CustomBounceEffect(
                   onTap: () {
                     Navigator.of(context).pop(dateTime);
                   },
@@ -263,7 +264,7 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
                   ),
                 ),
                 Container(height: 1, color: AppColors.gray300),
-                GestureDetector(
+                CustomBounceEffect(
                   onTap: () => Navigator.of(context).pop(),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -374,7 +375,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
             ),
             child: Column(
               children: [
-                GestureDetector(
+                CustomBounceEffect(
                   onTap: () {
                     Navigator.of(context).pop(TimeOfDay.fromDateTime(dateTime));
                   },
@@ -391,7 +392,7 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
                   ),
                 ),
                 Container(height: 1, color: AppColors.gray300),
-                GestureDetector(
+                CustomBounceEffect(
                   onTap: () => Navigator.of(context).pop(),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),

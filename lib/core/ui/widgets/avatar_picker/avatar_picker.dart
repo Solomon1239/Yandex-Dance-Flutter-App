@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 
 class AvatarPicker extends StatelessWidget {
@@ -34,7 +35,7 @@ class AvatarPicker extends StatelessWidget {
     return Column(
       children: [
         Center(
-          child: GestureDetector(
+          child: CustomBounceEffect(
             onTap: onTap,
             child: Stack(
               children: [

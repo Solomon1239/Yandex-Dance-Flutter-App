@@ -13,6 +13,7 @@ import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/widgets/filter-chip/app_filter_chip.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/switcher/switcher.dart';
@@ -47,6 +48,15 @@ class _EventsPageState extends State<EventsPage> {
   static const _anyDateFilterLabel = 'Любая дата';
   static const _anyAgeFilterLabel = 'Любой возраст';
 
+  /// Как при создании события, без «Для всех» — его нельзя выбрать отдельно в фильтре.
+  static const List<String> _ageFilterOptions = [
+    _anyAgeFilterLabel,
+    '6+',
+    '12+',
+    '16+',
+    '18+',
+  ];
+
   late final TextEditingController _searchEventsController;
   late final Stream<List<DanceEvent>> _eventsStream;
   final ProfileRepository _profileRepository = sl<ProfileRepository>();
@@ -67,10 +77,7 @@ class _EventsPageState extends State<EventsPage> {
     ).push(MaterialPageRoute(builder: (_) => EventDetailsPage(event: event)));
   }
 
-  Future<void> _openFiltersModal(
-    List<String> genres,
-    List<String> ageOptions,
-  ) async {
+  Future<void> _openFiltersModal(List<String> genres) async {
     final result = await showModalBottomSheet<_EventsFiltersResult>(
       context: context,
       showDragHandle: true,
@@ -78,7 +85,7 @@ class _EventsPageState extends State<EventsPage> {
       builder:
           (context) => _EventsFiltersSheet(
             genres: genres,
-            ageOptions: ageOptions,
+            ageOptions: _ageFilterOptions,
             selectedGenres: _selectedGenres,
             selectedDateFilter: _selectedDateFilter,
             selectedAgeFilter: _selectedAgeFilter,
@@ -209,6 +216,13 @@ class _EventsPageState extends State<EventsPage> {
     );
   }
 
+  bool _matchesAgeFilter(EventPreview event) {
+    if (_selectedAgeFilter == _anyAgeFilterLabel) {
+      return true;
+    }
+    return event.ageRestrictionLabel == _selectedAgeFilter;
+  }
+
   bool _matchesDateFilter(DateTime eventDate, DateTime now) {
     final eventDay = DateTime(eventDate.year, eventDate.month, eventDate.day);
     final today = DateTime(now.year, now.month, now.day);
@@ -245,13 +259,8 @@ class _EventsPageState extends State<EventsPage> {
               final query = _searchEventsController.text.trim().toLowerCase();
               final genres = [
                 _allGenresLabel,
-                ...{for (final event in events) event.styleLabel},
+                ...DanceStyle.values.map((s) => s.title),
               ];
-              final ageOptions = [
-                _anyAgeFilterLabel,
-                ...{for (final event in events) event.ageRestrictionLabel},
-              ];
-
               final filteredEvents =
                   events.where((event) {
                     final hasSpecificGenreFilter =
@@ -267,8 +276,7 @@ class _EventsPageState extends State<EventsPage> {
                       return false;
                     }
 
-                    if (_selectedAgeFilter != _anyAgeFilterLabel &&
-                        event.ageRestrictionLabel != _selectedAgeFilter) {
+                    if (!_matchesAgeFilter(event)) {
                       return false;
                     }
 
@@ -352,7 +360,7 @@ class _EventsPageState extends State<EventsPage> {
                       AppButton(
                         iconWidget: const SvgIcon(AppIcons.funnel, size: 20),
                         label: 'Фильтры',
-                        onTap: () => _openFiltersModal(genres, ageOptions),
+                        onTap: () => _openFiltersModal(genres),
                         style: const AppButtonStyle(
                           height: 44,
                           backgroundColor: Colors.transparent,

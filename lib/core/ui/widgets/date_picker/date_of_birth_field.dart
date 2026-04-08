@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 
 class DateOfBirthField extends StatelessWidget {
   const DateOfBirthField({
@@ -20,7 +21,7 @@ class DateOfBirthField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasValue = value != null;
-    return GestureDetector(
+    return CustomBounceEffect(
       onTap: onTap,
       child: Container(
         height: 56,

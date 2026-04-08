@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
+import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
@@ -9,6 +10,7 @@ import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 import 'package:yandex_dance/features/friends/presentation/widgets/friend_coach_avatar.dart';
 import 'package:yandex_dance/features/friends/presentation/widgets/friend_coach_styles_pill.dart';
+import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
 import 'package:yandex_dance/features/friends/presentation/widgets/friend_detail_user_sections.dart';
 import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
@@ -134,7 +136,6 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                               profile.avatarThumbUrl ??
                               profile.avatarUrl ??
                               '',
-                          rating: 0,
                         ),
                         const SizedBox(height: 20),
                         Padding(
@@ -161,10 +162,11 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                                 ),
                               ],
                               const SizedBox(height: 10),
-                              ProfileFollowStatsRow(
-                                followersCount: profile.followersCount,
-                                followingCount: profile.followingCount,
+                              ProfileFollowStatsLive(
+                                userId: widget.userId,
+                                followingCount: profile.friendIds.length,
                               ),
+                              _FriendDetailFollowBar(targetUid: widget.userId),
                             ],
                           ),
                         ),
@@ -210,6 +212,63 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Подписка / отписка ([FriendsManager]) для чужого профиля.
+class _FriendDetailFollowBar extends StatelessWidget {
+  const _FriendDetailFollowBar({required this.targetUid});
+
+  final String targetUid;
+
+  @override
+  Widget build(BuildContext context) {
+    final auth = sl<AuthRepository>();
+    final currentUid = auth.currentUserId;
+    if (currentUid == null || currentUid == targetUid) {
+      return const SizedBox.shrink();
+    }
+
+    final profileRepo = sl<ProfileRepository>();
+    final friendsManager = sl<FriendsManager>();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: StreamBuilder<UserProfile?>(
+        stream: profileRepo.watchProfile(currentUid),
+        builder: (context, snapshot) {
+          final me = snapshot.data;
+          final isFollowing = me?.friendIds.contains(targetUid) ?? false;
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isFollowing)
+                OutlinedButton(
+                  onPressed: () {
+                    friendsManager.unfollow(targetUid);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.gray0,
+                    side: const BorderSide(color: AppColors.gray300),
+                  ),
+                  child: const Text('Отписаться'),
+                )
+              else
+                FilledButton(
+                  onPressed: () {
+                    friendsManager.follow(targetUid);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.purple600,
+                    foregroundColor: AppColors.gray0,
+                  ),
+                  child: const Text('Подписаться'),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

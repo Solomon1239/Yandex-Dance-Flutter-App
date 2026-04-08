@@ -6,6 +6,7 @@ import 'package:yandex_dance/core/mixins/state_manager_listener_mixin.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
+import 'package:yandex_dance/core/ui/widgets/filter-chip/app_filter_chip.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/person_card/friend_card.dart';
 import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
@@ -28,10 +29,15 @@ class FriendsPage extends StatefulWidget {
 
 class _FriendsPageState extends State<FriendsPage>
     with StateManagerListenerMixin<FriendsPage, FriendsState> {
+  static const _allLabel = 'Все';
+
   late final FriendsManager _manager;
   late final TextEditingController _searchController;
   final FocusNode _searchFocusNode = FocusNode();
   bool _touched = false;
+
+  /// `null` — выбрано «Все».
+  DanceStyle? _selectedStyle;
 
   @override
   Stream<FriendsState> get stateStream => _manager.stream;
@@ -52,7 +58,6 @@ class _FriendsPageState extends State<FriendsPage>
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
-    _manager.close();
     super.dispose();
   }
 
@@ -77,7 +82,46 @@ class _FriendsPageState extends State<FriendsPage>
                 onFocusChange: () => setState(() => _touched = true),
                 onUnfocus: () => setState(() => _touched = true),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
+              StreamBuilder<FriendsState>(
+                stream: _manager.stream,
+                initialData: _manager.state,
+                builder: (context, snapshot) {
+                  final state = snapshot.data ?? const FriendsState();
+                  if (state.status != FriendsStatus.ready) {
+                    return const SizedBox.shrink();
+                  }
+                  return SizedBox(
+                    height: 44,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          AppFilterChip(
+                            label: _allLabel,
+                            isSelected: _selectedStyle == null,
+                            onTap: () {
+                              setState(() => _selectedStyle = null);
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          for (final style in DanceStyle.values) ...[
+                            AppFilterChip(
+                              label: style.title,
+                              isSelected: _selectedStyle == style,
+                              onTap: () {
+                                setState(() => _selectedStyle = style);
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
               Expanded(
                 child: StreamBuilder<FriendsState>(
                   stream: _manager.stream,
@@ -121,8 +165,14 @@ class _FriendsPageState extends State<FriendsPage>
     }
 
     final query = _searchController.text.trim().toLowerCase();
+
     final filtered =
         state.following.where((user) {
+          if (_selectedStyle != null) {
+            if (!user.danceStyles.contains(_selectedStyle!)) {
+              return false;
+            }
+          }
           if (query.isEmpty) return true;
           return (user.displayName?.toLowerCase().contains(query) ?? false) ||
               (user.city?.toLowerCase().contains(query) ?? false);
@@ -148,11 +198,17 @@ class _FriendsPageState extends State<FriendsPage>
           styleName: stylesLabel,
           description: user.bio ?? '',
           onTap: () {
-            Navigator.of(context).push<void>(
-              MaterialPageRoute<void>(
-                builder: (_) => FriendDetailPage(userId: user.uid),
-              ),
-            );
+            Navigator.of(context)
+                .push<void>(
+                  MaterialPageRoute<void>(
+                    builder: (_) => FriendDetailPage(userId: user.uid),
+                  ),
+                )
+                .then((_) {
+                  if (mounted) {
+                    _manager.start();
+                  }
+                });
           },
         );
       },

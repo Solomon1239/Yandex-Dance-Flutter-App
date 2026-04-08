@@ -95,6 +95,15 @@ class ProfileRemoteDataSource {
     return snapshot.docs.map(UserProfileModel.fromDoc).toList();
   }
 
+  /// Число пользователей, у которых в `followingIds` есть [uid] (обновляется в реальном времени).
+  Stream<int> watchFollowersCount(String uid) {
+    return _firestore
+        .collection('users')
+        .where('followingIds', arrayContains: uid)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
   Future<List<UserProfileModel>> searchUsers(String query) async {
     final lower = query.toLowerCase();
     final snapshot = await _firestore.collection('users').get();

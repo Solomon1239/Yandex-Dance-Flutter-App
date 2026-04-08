@@ -45,6 +45,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Stream<int> watchFollowersCount(String uid) {
+    return _remote.watchFollowersCount(uid);
+  }
+
+  @override
   Future<UserProfile?> getProfile(String uid) async {
     final model = await _remote.getProfile(uid);
     return model?.toEntity();

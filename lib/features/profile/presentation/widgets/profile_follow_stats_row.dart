@@ -1,7 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/core/utils/russian_plural.dart';
+import 'package:yandex_dance/features/friends/presentation/widgets/user_follow_lists_sheet.dart';
+import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
+
+Widget _tappableHalf({VoidCallback? onTap, required Widget child}) {
+  if (onTap == null) return child;
+  return Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: child,
+      ),
+    ),
+  );
+}
 
 /// Блок «подписчики / подписки» в скруглённой карточке с тенью.
 class ProfileFollowStatsRow extends StatelessWidget {
@@ -9,10 +27,14 @@ class ProfileFollowStatsRow extends StatelessWidget {
     super.key,
     required this.followersCount,
     required this.followingCount,
+    this.onFollowersTap,
+    this.onFollowingTap,
   });
 
   final int followersCount;
   final int followingCount;
+  final VoidCallback? onFollowersTap;
+  final VoidCallback? onFollowingTap;
 
   static String followersPhrase(int n) {
     final word = _followersWord(n);
@@ -56,9 +78,12 @@ class ProfileFollowStatsRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: _StatCell(
-              count: followersCount,
-              label: _followersWord(followersCount),
+            child: _tappableHalf(
+              onTap: onFollowersTap,
+              child: _StatCell(
+                count: followersCount,
+                label: _followersWord(followersCount),
+              ),
             ),
           ),
           Container(
@@ -68,13 +93,58 @@ class ProfileFollowStatsRow extends StatelessWidget {
             color: AppColors.gray300.withValues(alpha: 0.35),
           ),
           Expanded(
-            child: _StatCell(
-              count: followingCount,
-              label: _followingWord(followingCount),
+            child: _tappableHalf(
+              onTap: onFollowingTap,
+              child: _StatCell(
+                count: followingCount,
+                label: _followingWord(followingCount),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Счётчики в реальном времени: подписки — из [followingCount] (документ
+/// пользователя, [watchProfile]); подписчики — [ProfileRepository.watchFollowersCount].
+class ProfileFollowStatsLive extends StatelessWidget {
+  const ProfileFollowStatsLive({
+    super.key,
+    required this.userId,
+    required this.followingCount,
+  });
+
+  final String userId;
+  final int followingCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final repo = sl<ProfileRepository>();
+    return StreamBuilder<int>(
+      stream: repo.watchFollowersCount(userId),
+      builder: (context, snapshot) {
+        final followers = snapshot.data ?? 0;
+        return ProfileFollowStatsRow(
+          followersCount: followers,
+          followingCount: followingCount,
+          onFollowersTap: () {
+            showUserFollowListsSheet(
+              context,
+              userId: userId,
+              initialTabIndex: 0,
+            );
+          },
+          onFollowingTap: () {
+            showUserFollowListsSheet(
+              context,
+              userId: userId,
+              initialTabIndex: 1,
+            );
+          },
+        );
+      },
     );
   }
 }

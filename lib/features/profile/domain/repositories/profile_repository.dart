@@ -6,7 +6,7 @@ import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart'
 /// интерфейсом — на экранах и в менеджерах работаем только с этими методами.
 abstract interface class ProfileRepository {
   /// Подписка на все профили пользователей.
-  /// Нужна для экранов, где показываются подборки танцоров или рейтинги.
+  /// Нужна для экранов с подборками пользователей (например, главная).
   Stream<List<UserProfile>> watchAllProfiles();
 
   /// Подписка на профиль в реальном времени. Каждый раз, когда документ
@@ -14,6 +14,10 @@ abstract interface class ProfileRepository {
   /// Если профиля ещё нет — прилетит `null`.
   /// Используй, когда страница должна сама обновляться при изменениях.
   Stream<UserProfile?> watchProfile(String uid);
+
+  /// Подписка на количество подписчиков: сколько документов `users` содержат
+  /// [uid] в поле `followingIds`. Обновляется при подписке/отписке других пользователей.
+  Stream<int> watchFollowersCount(String uid);
 
   /// Разовое чтение профиля. Вернёт `null`, если документа нет.
   /// Подходит для одноразовых проверок (например, «есть ли у этого uid

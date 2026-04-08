@@ -8,7 +8,6 @@ class FriendCoach extends Equatable {
     required this.name,
     required List<String> styles,
     required this.description,
-    required this.rating,
     required this.avatarUrl,
   }) : styles = List.unmodifiable(styles);
 
@@ -16,11 +15,10 @@ class FriendCoach extends Equatable {
   final String name;
   final List<String> styles;
   final String description;
-  final double rating;
   final String avatarUrl;
 
   String get stylesLabel => styles.join(' · ');
 
   @override
-  List<Object?> get props => [id, name, styles, description, rating, avatarUrl];
+  List<Object?> get props => [id, name, styles, description, avatarUrl];
 }

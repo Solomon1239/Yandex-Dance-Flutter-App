@@ -7,7 +7,6 @@ class PersonPhoto extends StatelessWidget {
   const PersonPhoto({
     super.key,
     this.image,
-    this.rating,
     required this.size,
     this.badgeLabel,
     this.badgeIcon = AppIcons.star,
@@ -15,7 +14,6 @@ class PersonPhoto extends StatelessWidget {
   });
 
   final ImageProvider<Object>? image;
-  final double? rating;
   final double size;
   final String? badgeLabel;
   final String badgeIcon;
@@ -35,7 +33,12 @@ class PersonPhoto extends StatelessWidget {
     final badgeRightInset = size * 0.02;
     final badgeBottomOffset = size * 0.10;
 
-    if (!showBadge) {
+    final showImageBadge =
+        showBadge &&
+        badgeLabel != null &&
+        badgeLabel!.trim().isNotEmpty;
+
+    if (!showImageBadge) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
         child:
@@ -50,6 +53,8 @@ class PersonPhoto extends StatelessWidget {
                 : _PhotoPlaceholder(size: size),
       );
     }
+
+    final label = badgeLabel!.trim();
 
     return SizedBox(
       width: size,
@@ -74,8 +79,8 @@ class PersonPhoto extends StatelessWidget {
           Positioned(
             right: badgeRightInset,
             bottom: -badgeBottomOffset,
-            child: _RatingBadge(
-              badgeLabel: badgeLabel ?? (rating ?? 0).toStringAsFixed(1),
+            child: _ImageBadge(
+              badgeLabel: label,
               badgeIcon: badgeIcon,
               horizontalPadding: badgeHorizontalPadding,
               verticalPadding: badgeVerticalPadding,
@@ -91,8 +96,8 @@ class PersonPhoto extends StatelessWidget {
   }
 }
 
-class _RatingBadge extends StatelessWidget {
-  const _RatingBadge({
+class _ImageBadge extends StatelessWidget {
+  const _ImageBadge({
     required this.badgeLabel,
     required this.badgeIcon,
     required this.horizontalPadding,

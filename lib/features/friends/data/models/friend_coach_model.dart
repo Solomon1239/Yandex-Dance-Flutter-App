@@ -7,7 +7,6 @@ import 'package:yandex_dance/features/friends/domain/entities/friend_coach.dart'
 /// - `name` (string)
 /// - `styles` (array of string)
 /// - `description` (string)
-/// - `rating` (number)
 /// - `avatarUrl` (string)
 class FriendCoachModel {
   const FriendCoachModel({
@@ -15,7 +14,6 @@ class FriendCoachModel {
     required this.name,
     required this.styles,
     required this.description,
-    required this.rating,
     required this.avatarUrl,
   });
 
@@ -23,7 +21,6 @@ class FriendCoachModel {
   final String name;
   final List<String> styles;
   final String description;
-  final double rating;
   final String avatarUrl;
 
   factory FriendCoachModel.fromDoc(
@@ -43,7 +40,6 @@ class FriendCoachModel {
       name: data['name'] as String? ?? '',
       styles: styles,
       description: data['description'] as String? ?? '',
-      rating: (data['rating'] as num?)?.toDouble() ?? 0,
       avatarUrl: data['avatarUrl'] as String? ?? '',
     );
   }
@@ -54,7 +50,6 @@ class FriendCoachModel {
       name: name,
       styles: styles,
       description: description,
-      rating: rating,
       avatarUrl: avatarUrl,
     );
   }

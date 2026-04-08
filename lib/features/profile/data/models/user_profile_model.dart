@@ -75,7 +75,9 @@ class UserProfileModel {
       onboardingCompleted:
           data['onboardingCompleted'] as bool? ??
           List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
-      friendIds: List<String>.from(data['friendIds'] ?? const []),
+      friendIds: List<String>.from(
+        data['followingIds'] ?? data['friendIds'] ?? const [],
+      ),
       followersCount: (data['followersCount'] as num?)?.toInt() ?? 0,
       followingCount: (data['followingCount'] as num?)?.toInt() ?? 0,
       createdAt: _dateFromDynamic(data['createdAt']),
@@ -154,7 +156,7 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
-      'friendIds': friendIds,
+      'followingIds': friendIds,
       'followersCount': followersCount,
       'followingCount': followingCount,
       'createdAt': FieldValue.serverTimestamp(),
@@ -181,7 +183,7 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
-      'friendIds': friendIds,
+      'followingIds': friendIds,
       'followersCount': followersCount,
       'followingCount': followingCount,
       'updatedAt': FieldValue.serverTimestamp(),

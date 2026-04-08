@@ -6,6 +6,7 @@ import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/utils/validators.dart';
@@ -346,8 +347,7 @@ class _AuthModeSwitcher extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
+                    child: CustomBounceEffect(
                       onTap: onLoginTap,
                       child: Center(
                         child: AnimatedDefaultTextStyle(
@@ -363,8 +363,7 @@ class _AuthModeSwitcher extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
+                    child: CustomBounceEffect(
                       onTap: onSignUpTap,
                       child: Center(
                         child: AnimatedDefaultTextStyle(

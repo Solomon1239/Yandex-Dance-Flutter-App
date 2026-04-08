@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 
 class DanceStylesSelector extends StatelessWidget {
   const DanceStylesSelector({
@@ -45,7 +46,7 @@ class DanceStyleChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return CustomBounceEffect(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),

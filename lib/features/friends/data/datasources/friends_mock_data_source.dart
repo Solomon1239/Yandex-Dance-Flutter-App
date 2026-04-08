@@ -12,7 +12,6 @@ class FriendsMockDataSource implements FriendsDataSource {
       styles: ['Hip-Hop', 'Breaking'],
       description:
           'Сертифицированный преподаватель уличных стилей, участник баттлов.',
-      rating: 4.9,
       avatarUrl: 'https://randomuser.me/api/portraits/women/65.jpg',
     ),
     FriendCoachModel(
@@ -20,7 +19,6 @@ class FriendsMockDataSource implements FriendsDataSource {
       name: 'Дмитрий Волков',
       styles: ['House', 'Vogue'],
       description: 'Студия и онлайн: house, vogue, работа с пластикой.',
-      rating: 4.7,
       avatarUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
     ),
     FriendCoachModel(
@@ -28,7 +26,6 @@ class FriendsMockDataSource implements FriendsDataSource {
       name: 'Елена Соколова',
       styles: ['Contemporary', 'Heels'],
       description: 'Современный танец и heels: от базы до постановок.',
-      rating: 4.8,
       avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
     ),
     FriendCoachModel(
@@ -36,7 +33,6 @@ class FriendsMockDataSource implements FriendsDataSource {
       name: 'Кирилл Орлов',
       styles: ['Dancehall'],
       description: 'Dancehall и регги: энергия, ритм и изоляции.',
-      rating: 4.6,
       avatarUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
     ),
     FriendCoachModel(
@@ -44,7 +40,6 @@ class FriendsMockDataSource implements FriendsDataSource {
       name: 'Мария Лебедева',
       styles: ['Hip-Hop', 'House', 'Breaking'],
       description: 'Группы для начинающих и продвинутых, подготовка к сцене.',
-      rating: 5.0,
       avatarUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
     ),
   ];

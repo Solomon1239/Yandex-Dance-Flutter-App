@@ -712,7 +712,7 @@ class _EventPreviewPlate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return CustomBounceEffect(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),

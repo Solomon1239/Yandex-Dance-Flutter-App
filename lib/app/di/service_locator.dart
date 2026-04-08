@@ -138,10 +138,11 @@ Future<void> configureDependencies() async {
       mediaPickerService: sl<MediaPickerService>(),
     ),
   );
-  sl.registerFactory<FriendsManager>(
+  sl.registerLazySingleton<FriendsManager>(
     () => FriendsManager(
       friendRepository: sl<FriendRepository>(),
       authRepository: sl<AuthRepository>(),
+      profileRepository: sl<ProfileRepository>(),
     ),
   );
 

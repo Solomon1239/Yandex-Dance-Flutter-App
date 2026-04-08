@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 
@@ -71,7 +72,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       ? const CircularProgressIndicator(
                         color: AppColors.purple500,
                       )
-                      : GestureDetector(
+                      : CustomBounceEffect(
                         onTap: _togglePlay,
                         child: Stack(
                           alignment: Alignment.center,

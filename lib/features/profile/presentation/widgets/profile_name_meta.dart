@@ -39,9 +39,9 @@ class ProfileNameMeta extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 10),
-          ProfileFollowStatsRow(
-            followersCount: profile.followersCount,
-            followingCount: profile.followingCount,
+          ProfileFollowStatsLive(
+            userId: profile.uid,
+            followingCount: profile.friendIds.length,
           ),
         ],
       ),
