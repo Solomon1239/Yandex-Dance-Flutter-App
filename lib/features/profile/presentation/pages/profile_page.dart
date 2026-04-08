@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
+import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
+import 'package:yandex_dance/features/events/presentation/pages/event_details_page.dart';
+import 'package:yandex_dance/features/events/presentation/utils/dance_event_to_event_preview.dart';
 import 'package:yandex_dance/core/mixins/state_manager_listener_mixin.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
@@ -40,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage>
 
   @override
   void dispose() {
-    _manager.close();
+    // [ProfileManager] — singleton; подписки сбрасываются в [ProfileManager.signOut].
     super.dispose();
   }
 
@@ -125,6 +128,23 @@ class _ProfilePageState extends State<ProfilePage>
                       ProfileEventsSection(
                         events: state.events,
                         onSeeAll: () => context.go('/events'),
+                        onEventTap: (event) {
+                          final uid = sl<AuthRepository>().currentUserId;
+                          final authorLabel =
+                              uid != null && event.creatorId == uid
+                                  ? 'Вы'
+                                  : 'Организатор';
+                          final preview = eventPreviewFromDanceEvent(
+                            event,
+                            authorLabel: authorLabel,
+                          );
+                          Navigator.of(context).push<void>(
+                            MaterialPageRoute<void>(
+                              builder:
+                                  (_) => EventDetailsPage(event: preview),
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 24),
                       ProfileVideosSection(

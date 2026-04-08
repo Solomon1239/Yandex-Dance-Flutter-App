@@ -16,6 +16,7 @@ class FriendCard extends StatelessWidget {
   final bool showImageBadge;
   final String? headerBadgeLabel;
   final String headerBadgeIcon;
+  final VoidCallback? onTap;
 
   const FriendCard({
     super.key,
@@ -29,15 +30,18 @@ class FriendCard extends StatelessWidget {
     this.showImageBadge = true,
     this.headerBadgeLabel,
     this.headerBadgeIcon = AppIcons.calendar,
+    this.onTap,
   });
+
+  static const _radius = 32.0;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color(0xFF101010),
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(_radius),
         border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         boxShadow: const [
           BoxShadow(
@@ -105,6 +109,19 @@ class FriendCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+
+    if (onTap == null) {
+      return card;
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(_radius),
+        child: card,
       ),
     );
   }

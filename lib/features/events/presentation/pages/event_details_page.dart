@@ -14,6 +14,7 @@ import 'package:yandex_dance/features/events/domain/repositories/event_repositor
 import 'package:yandex_dance/features/events/presentation/models/event_preview.dart';
 import 'package:yandex_dance/features/events/presentation/pages/edit_event_screen.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
+import 'package:yandex_dance/features/profile/presentation/managers/profile_manager.dart';
 
 class EventDetailsPage extends StatefulWidget {
   const EventDetailsPage({super.key, required this.event});
@@ -107,16 +108,12 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       return;
     }
 
-    if (event.isCreator(uid)) {
-      AppSnackBar.showInfo(context, 'Вы организатор мероприятия');
-      return;
-    }
-
     if (_isMembershipActionInProgress) return;
     setState(() => _isMembershipActionInProgress = true);
     try {
       if (event.isParticipant(uid)) {
         await _eventRepository.leaveEvent(eventId: event.id, uid: uid);
+        sl<ProfileManager>().removeUserEventFromList(event.id);
         if (mounted) {
           AppSnackBar.showSuccess(context, 'Вы отписались от мероприятия');
         }
@@ -400,15 +397,15 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                           child: AppButton(
                             label:
-                                isOwner
-                                    ? 'Вы организатор'
-                                    : isParticipant
+                                isParticipant
                                     ? 'Отписаться'
                                     : event.isFull
                                     ? 'Мест нет'
+                                    : isOwner
+                                    ? 'Записаться как участник'
                                     : 'Записаться',
                             style:
-                                isParticipant && !isOwner
+                                isParticipant
                                     ? const AppButtonStyle(
                                       width: double.infinity,
                                       height: 52,
@@ -425,7 +422,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                       width: double.infinity,
                                     ),
                             onTap:
-                                (isOwner || (event.isFull && !isParticipant))
+                                (!isParticipant && event.isFull)
                                     ? null
                                     : () => _handleMembershipAction(event),
                             needLoading: _isMembershipActionInProgress,

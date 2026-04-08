@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:yandex_dance/core/errors/app_exception.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
@@ -29,6 +30,7 @@ class ProfileManager extends StateManager<ProfileState> {
 
   StreamSubscription<UserProfile?>? _profileSubscription;
   StreamSubscription<List<DanceEvent>>? _eventsSubscription;
+  String? _eventsStreamUid;
 
   void start() {
     final uid = _authRepository.currentUserId;
@@ -45,14 +47,46 @@ class ProfileManager extends StateManager<ProfileState> {
     }
 
     _profileSubscription?.cancel();
-    _profileSubscription = _profileRepository
-        .watchProfile(uid)
-        .listen(_onProfileChanged);
+    _profileSubscription = _profileRepository.watchProfile(uid).listen(
+      _onProfileChanged,
+      onError: (Object e, StackTrace st) {
+        addError(e, st, 'profile.watchProfile');
+      },
+      cancelOnError: false,
+    );
 
+    _bindUserEventsStream(uid);
+  }
+
+  void _bindUserEventsStream(String uid) {
     _eventsSubscription?.cancel();
-    _eventsSubscription = _eventRepository
-        .watchUserEvents(uid)
-        .listen(_onEventsChanged);
+    _eventsStreamUid = uid;
+    _eventsSubscription = _eventRepository.watchUserEvents(uid).listen(
+      _onEventsChanged,
+      onError: (Object e, StackTrace st) {
+        addError(e, st, 'profile.watchUserEvents');
+        debugPrint('profile.watchUserEvents error: $e');
+        // Подписка могла умереть; переподключаемся (индекс, сеть).
+        Future<void>.delayed(const Duration(seconds: 2), () {
+          final current = _authRepository.currentUserId;
+          if (current != null && current == _eventsStreamUid) {
+            _bindUserEventsStream(current);
+          }
+        });
+      },
+      cancelOnError: false,
+    );
+  }
+
+  /// После успешной отписки на экране мероприятия — убрать карточку сразу,
+  /// не дожидаясь снимка Firestore (и если стрим временно не обновился).
+  void removeUserEventFromList(String eventId) {
+    handle((emit) async {
+      final next =
+          state.events.where((e) => e.id != eventId).toList(growable: false);
+      if (next.length == state.events.length) return;
+      emit(state.copyWith(events: next));
+    }, identifier: 'profile.removeUserEventFromList');
   }
 
   Future<void> _onProfileChanged(UserProfile? profile) {
@@ -133,6 +167,11 @@ class ProfileManager extends StateManager<ProfileState> {
   Future<void> signOut() {
     return handle((emit) async {
       try {
+        await _profileSubscription?.cancel();
+        await _eventsSubscription?.cancel();
+        _profileSubscription = null;
+        _eventsSubscription = null;
+        _eventsStreamUid = null;
         emit(state.copyWith(status: ProfileStatus.loading, clearError: true));
         await _authRepository.signOut();
       } on AppException catch (e, stackTrace) {

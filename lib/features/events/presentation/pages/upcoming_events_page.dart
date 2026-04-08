@@ -410,9 +410,10 @@ class _SectionPlaceholder extends StatelessWidget {
         border: Border.all(color: AppColors.gray300.withValues(alpha: 0.3)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SvgIcon(iconPath, size: 24, color: AppColors.gray100),
-          const SizedBox(width: 12),
+          SvgIcon(iconPath, size: 28, color: AppColors.gray300),
+          const SizedBox(width: 16),
           Expanded(
             child: Text(
               text,
