@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
-/// Тренер / пользователь из раздела «Друзья» (доменная модель без Flutter).
+/// Запись из коллекции `coaches` (мок / Firestore) для списков, где нужны
+/// предзагруженные карточки. Экран профиля другого пользователя строится из [UserProfile].
 class FriendCoach extends Equatable {
   FriendCoach({
     required this.id,

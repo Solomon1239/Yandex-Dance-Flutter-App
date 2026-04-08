@@ -56,11 +56,12 @@ class FriendCoachAvatar extends StatelessWidget {
                         ),
               ),
             ),
-            Positioned(
-              right: -4,
-              bottom: -4,
-              child: _CoachRatingBadge(rating: rating),
-            ),
+            if (rating > 0)
+              Positioned(
+                right: -4,
+                bottom: -4,
+                child: _CoachRatingBadge(rating: rating),
+              ),
           ],
         ),
       ),

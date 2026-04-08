@@ -19,12 +19,12 @@ import 'package:yandex_dance/features/profile/presentation/pages/video_player_pa
 class FriendDetailEventsSection extends StatelessWidget {
   const FriendDetailEventsSection({
     super.key,
-    required this.coachId,
-    required this.coachName,
+    required this.userId,
+    required this.userDisplayName,
   });
 
-  final String coachId;
-  final String coachName;
+  final String userId;
+  final String userDisplayName;
 
   static final _dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
 
@@ -41,7 +41,7 @@ class FriendDetailEventsSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         StreamBuilder<List<DanceEvent>>(
-          stream: eventRepository.watchUserEvents(coachId),
+          stream: eventRepository.watchUserEvents(userId),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {
@@ -96,8 +96,8 @@ class FriendDetailEventsSection extends StatelessWidget {
                     dateLabel: _dateFormat.format(upcoming[i].dateTime),
                     locationLabel: upcoming[i].address,
                     authorLabel:
-                        upcoming[i].creatorId == coachId
-                            ? coachName
+                        upcoming[i].creatorId == userId
+                            ? userDisplayName
                             : 'Организатор',
                     participantsLabel:
                         '${upcoming[i].currentParticipants}/${upcoming[i].maxParticipants}',
@@ -110,8 +110,8 @@ class FriendDetailEventsSection extends StatelessWidget {
                         () => _openEventDetails(
                           context,
                           upcoming[i],
-                          coachId,
-                          coachName,
+                          userId,
+                          userDisplayName,
                         ),
                   ),
                   if (i != upcoming.length - 1) const SizedBox(height: 16),
@@ -128,21 +128,22 @@ class FriendDetailEventsSection extends StatelessWidget {
 void _openEventDetails(
   BuildContext context,
   DanceEvent event,
-  String coachId,
-  String coachName,
+  String userId,
+  String userDisplayName,
 ) {
-  final authorLabel = event.creatorId == coachId ? coachName : 'Организатор';
+  final authorLabel =
+      event.creatorId == userId ? userDisplayName : 'Организатор';
   final preview = eventPreviewFromDanceEvent(event, authorLabel: authorLabel);
   Navigator.of(context).push<void>(
     MaterialPageRoute<void>(builder: (_) => EventDetailsPage(event: preview)),
   );
 }
 
-/// Intro-видео из профиля пользователя с тем же [coachId] в Firebase.
+/// Intro-видео из профиля пользователя по [userId] в `users/{uid}`.
 class FriendDetailVideoSection extends StatelessWidget {
-  const FriendDetailVideoSection({super.key, required this.coachId});
+  const FriendDetailVideoSection({super.key, required this.userId});
 
-  final String coachId;
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
@@ -157,7 +158,7 @@ class FriendDetailVideoSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         StreamBuilder<UserProfile?>(
-          stream: profileRepository.watchProfile(coachId),
+          stream: profileRepository.watchProfile(userId),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting &&
                 !snapshot.hasData) {

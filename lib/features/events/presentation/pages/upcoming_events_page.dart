@@ -49,10 +49,10 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
     ).push(MaterialPageRoute(builder: (_) => EventDetailsPage(event: event)));
   }
 
-  void _openDancerDetails(String coachId) {
+  void _openDancerDetails(String userId) {
     Navigator.of(context).push<void>(
       MaterialPageRoute<void>(
-        builder: (_) => FriendDetailPage(coachId: coachId),
+        builder: (_) => FriendDetailPage(userId: userId),
       ),
     );
   }

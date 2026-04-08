@@ -9,6 +9,7 @@ import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/person_card/friend_card.dart';
 import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
+import 'package:yandex_dance/features/friends/presentation/pages/friend_detail_page.dart';
 import 'package:yandex_dance/features/friends/presentation/state/friends_state.dart';
 import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
 
@@ -146,6 +147,13 @@ class _FriendsPageState extends State<FriendsPage>
           name: user.displayName ?? '',
           styleName: stylesLabel,
           description: user.bio ?? '',
+          onTap: () {
+            Navigator.of(context).push<void>(
+              MaterialPageRoute<void>(
+                builder: (_) => FriendDetailPage(userId: user.uid),
+              ),
+            );
+          },
         );
       },
     );
