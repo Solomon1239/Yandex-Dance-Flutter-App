@@ -143,7 +143,7 @@ class EventRepositoryImpl implements EventRepository {
         latitude: latitude,
         longitude: longitude,
         maxParticipants: maxParticipants,
-        participantIds: [creatorId],
+        participantIds: const [],
         ageRestriction: ageRestriction,
         promoVideoUrl: promoVideoUrl,
         promoVideoThumbUrl: promoVideoThumbUrl,

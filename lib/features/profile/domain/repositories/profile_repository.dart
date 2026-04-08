@@ -5,6 +5,10 @@ import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart'
 /// загружает аватар и видео. Всё общение с Firebase спрятано за этим
 /// интерфейсом — на экранах и в менеджерах работаем только с этими методами.
 abstract interface class ProfileRepository {
+  /// Подписка на все профили пользователей.
+  /// Нужна для экранов, где показываются подборки танцоров или рейтинги.
+  Stream<List<UserProfile>> watchAllProfiles();
+
   /// Подписка на профиль в реальном времени. Каждый раз, когда документ
   /// в Firestore меняется, в поток прилетает новое значение.
   /// Если профиля ещё нет — прилетит `null`.
@@ -65,19 +69,11 @@ abstract interface class ProfileRepository {
   /// Удаляет intro-видео: сносит файлы из Storage и чистит поля
   /// `introVideoUrl`/`introVideoThumbUrl`/`introVideoStoragePath`/... в
   /// документе профиля. Возвращает профиль без видео.
-  Future<UserProfile> deleteIntroVideo({
-    required UserProfile currentProfile,
-  });
+  Future<UserProfile> deleteIntroVideo({required UserProfile currentProfile});
 
-  Future<void> addFriend({
-    required String uid,
-    required String friendUid,
-  });
+  Future<void> addFriend({required String uid, required String friendUid});
 
-  Future<void> removeFriend({
-    required String uid,
-    required String friendUid,
-  });
+  Future<void> removeFriend({required String uid, required String friendUid});
 
   Future<List<UserProfile>> getFriends(String uid);
 

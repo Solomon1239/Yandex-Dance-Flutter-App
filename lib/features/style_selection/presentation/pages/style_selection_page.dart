@@ -36,6 +36,7 @@ class _StyleSelectionPageState extends State<StyleSelectionPage>
   final _bioController = TextEditingController();
 
   final _nameFocus = FocusNode();
+  final _cityFocus = FocusNode();
   final _bioFocus = FocusNode();
 
   bool _nameTouched = false;
@@ -67,6 +68,7 @@ class _StyleSelectionPageState extends State<StyleSelectionPage>
     _nameController.dispose();
     _bioController.dispose();
     _nameFocus.dispose();
+    _cityFocus.dispose();
     _bioFocus.dispose();
     _manager.close();
     super.dispose();
@@ -159,7 +161,7 @@ class _StyleSelectionPageState extends State<StyleSelectionPage>
                       contoller: _nameController,
                       touched: _nameTouched,
                       focusNode: _nameFocus,
-                      nextFocusNode: _bioFocus,
+                      nextFocusNode: _cityFocus,
                       textInputAction: TextInputAction.next,
                       validator:
                           (v) => Validators.requiredText(v, field: 'Имя'),
@@ -172,6 +174,8 @@ class _StyleSelectionPageState extends State<StyleSelectionPage>
                     CityPickerField(
                       value: _selectedCity,
                       searchService: _citySearchService,
+                      focusNode: _cityFocus,
+                      nextFocusNode: _bioFocus,
                       showError: _cityError && _selectedCity == null,
                       errorText: 'Выберите город из списка',
                       onChanged: (city) => setState(() {

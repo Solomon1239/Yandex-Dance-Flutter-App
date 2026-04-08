@@ -16,6 +16,11 @@ import 'package:yandex_dance/features/friends/domain/repositories/friend_reposit
 import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
 import 'package:yandex_dance/features/events/data/repositories/event_repository_impl.dart';
 import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friends_data_source.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friends_mock_data_source.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friends_remote_data_source.dart';
+import 'package:yandex_dance/features/friends/data/repositories/friends_repository_impl.dart';
+import 'package:yandex_dance/features/friends/domain/repositories/friends_repository.dart';
 import 'package:yandex_dance/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:yandex_dance/features/profile/data/repositories/profile_repository_impl.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
@@ -29,6 +34,10 @@ import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final sl = GetIt.instance;
+
+/// `false` — список тренеров из [FriendsMockDataSource]; `true` — Firestore `coaches`.
+const bool kFriendsUseFirestore = false;
+
 const _fallbackDadataToken = '0743c317d03c6061ed73fb541a8fd44375e40fd2';
 
 String get _dadataToken {
@@ -111,9 +120,7 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  sl.registerFactory<AuthManager>(
-    () => AuthManager(sl<AuthRepository>()),
-  );
+  sl.registerFactory<AuthManager>(() => AuthManager(sl<AuthRepository>()));
   sl.registerFactory<StyleSelectionManager>(
     () => StyleSelectionManager(
       profileRepository: sl<ProfileRepository>(),
@@ -121,7 +128,7 @@ Future<void> configureDependencies() async {
       mediaPickerService: sl<MediaPickerService>(),
     ),
   );
-  sl.registerFactory<ProfileManager>(
+  sl.registerLazySingleton<ProfileManager>(
     () => ProfileManager(
       profileRepository: sl<ProfileRepository>(),
       authRepository: sl<AuthRepository>(),

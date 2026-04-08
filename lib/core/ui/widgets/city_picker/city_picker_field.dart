@@ -14,6 +14,8 @@ class CityPickerField extends StatefulWidget {
     required this.value,
     required this.onChanged,
     required this.searchService,
+    this.focusNode,
+    this.nextFocusNode,
     this.hint = 'Город *',
     this.showError = false,
     this.errorText,
@@ -22,6 +24,8 @@ class CityPickerField extends StatefulWidget {
   final City? value;
   final ValueChanged<City?> onChanged;
   final CitySearchService searchService;
+  final FocusNode? focusNode;
+  final FocusNode? nextFocusNode;
   final String hint;
   final bool showError;
   final String? errorText;
@@ -32,7 +36,8 @@ class CityPickerField extends StatefulWidget {
 
 class _CityPickerFieldState extends State<CityPickerField> {
   late final TextEditingController _controller;
-  final _focusNode = FocusNode();
+  late final FocusNode _focusNode;
+  var _ownsFocusNode = false;
   Timer? _debounce;
   int _requestId = 0;
 
@@ -44,6 +49,12 @@ class _CityPickerFieldState extends State<CityPickerField> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.value?.name ?? '');
+    if (widget.focusNode != null) {
+      _focusNode = widget.focusNode!;
+    } else {
+      _focusNode = FocusNode();
+      _ownsFocusNode = true;
+    }
     _focusNode.addListener(_onFocusChange);
   }
 
@@ -71,7 +82,9 @@ class _CityPickerFieldState extends State<CityPickerField> {
   void dispose() {
     _debounce?.cancel();
     _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
+    if (_ownsFocusNode) {
+      _focusNode.dispose();
+    }
     _controller.dispose();
     super.dispose();
   }
@@ -142,10 +155,12 @@ class _CityPickerFieldState extends State<CityPickerField> {
 
   @override
   Widget build(BuildContext context) {
-    final borderColor = widget.showError
-        ? AppColors.pink500
-        : AppColors.gray300.withValues(alpha: 0.55);
-    final showSuggestions = _focusNode.hasFocus &&
+    final borderColor =
+        widget.showError
+            ? AppColors.pink500
+            : AppColors.gray300.withValues(alpha: 0.55);
+    final showSuggestions =
+        _focusNode.hasFocus &&
         (_isLoading || _results.isNotEmpty || _hasSearched);
 
     return Column(
@@ -176,6 +191,15 @@ class _CityPickerFieldState extends State<CityPickerField> {
                   controller: _controller,
                   focusNode: _focusNode,
                   onChanged: _onTextChanged,
+                  textInputAction:
+                      widget.nextFocusNode != null
+                          ? TextInputAction.next
+                          : TextInputAction.done,
+                  onSubmitted: (_) {
+                    if (widget.nextFocusNode != null) {
+                      FocusScope.of(context).requestFocus(widget.nextFocusNode);
+                    }
+                  },
                   cursorColor: AppColors.gray0,
                   style: AppTextTheme.body1Medium18pt.copyWith(
                     color: AppColors.gray0,
@@ -256,9 +280,7 @@ class _SuggestionsBox extends StatelessWidget {
     final decoration = BoxDecoration(
       color: AppColors.gray400.withValues(alpha: 0.70),
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(
-        color: AppColors.gray300.withValues(alpha: 0.55),
-      ),
+      border: Border.all(color: AppColors.gray300.withValues(alpha: 0.55)),
     );
 
     if (isLoading) {
@@ -300,12 +322,13 @@ class _SuggestionsBox extends StatelessWidget {
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(vertical: 4),
           itemCount: results.length,
-          separatorBuilder: (_, __) => Divider(
-            height: 1,
-            color: AppColors.gray300.withValues(alpha: 0.15),
-            indent: 16,
-            endIndent: 16,
-          ),
+          separatorBuilder:
+              (_, __) => Divider(
+                height: 1,
+                color: AppColors.gray300.withValues(alpha: 0.15),
+                indent: 16,
+                endIndent: 16,
+              ),
           itemBuilder: (_, i) {
             final city = results[i];
             return InkWell(

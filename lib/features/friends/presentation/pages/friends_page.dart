@@ -1,49 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:yandex_dance/app/di/service_locator.dart';
+import 'package:yandex_dance/core/enums/dance_style.dart';
+import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
-import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
-import 'package:yandex_dance/core/ui/widgets/buttons/base_button.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/person_card/friend_card.dart';
+import 'package:yandex_dance/features/create_event/presentation/widgets/dance_style_dropdown.dart';
+import 'package:yandex_dance/features/friends/domain/entities/friend_coach.dart';
+import 'package:yandex_dance/features/friends/domain/repositories/friends_repository.dart';
+import 'package:yandex_dance/features/friends/presentation/pages/friend_detail_page.dart';
+import 'package:yandex_dance/features/friends/presentation/widgets/coach_avatar_image_provider.dart';
 
-final _mockCoaches = [
-  _MockCoach(
-    name: 'Алексей Ким',
-    styles: ['Hip Hop', 'House'],
-    description: 'Профессиональный тренер по хип-хопу с большим опытом выступлений',
-    rating: 4.9,
-    image: const NetworkImage(
-      'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?auto=format&fit=crop&w=800&q=80',
-    ),
-  ),
-  _MockCoach(
-    name: 'Mila Stone',
-    styles: ['House', 'Jazz Funk'],
-    description: 'Помогает раскрыть музыкальность, грув и уверенную работу корпуса',
-    rating: 4.8,
-    image: const NetworkImage(
-      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=800&q=80',
-    ),
-  ),
-  _MockCoach(
-    name: 'John John',
-    styles: ['Breaking'],
-    description: 'Тренер по брейкингу, базам, фризам и работе в кругу',
-    rating: 3.5,
-    image: const NetworkImage(
-      'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=800&q=80',
-    ),
-  ),
-  _MockCoach(
-    name: 'Sasha Lee',
-    styles: ['Jazz Funk', 'Hip Hop'],
-    description: 'Ставит яркие связки и помогает прокачать подачу и пластику',
-    rating: 4.7,
-    image: const NetworkImage(
-      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=800&q=80',
-    ),
-  ),
-];
+bool _coachMatchesDanceStyle(FriendCoach coach, DanceStyle style) {
+  final key = style.title.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
+  return coach.styles.any(
+    (s) =>
+        s.toLowerCase().replaceAll(RegExp(r'[\s-]'), '') == key ||
+        s.toLowerCase().contains(style.title.toLowerCase()) ||
+        style.title.toLowerCase().contains(s.toLowerCase()),
+  );
+}
 
 class FriendsPage extends StatefulWidget {
   const FriendsPage({super.key});
@@ -53,15 +30,43 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
+  final FriendsRepository _friendsRepository = sl<FriendsRepository>();
+
   late final TextEditingController _searchCoachesController;
   final FocusNode _searchCoachesFocusNode = FocusNode();
   bool _touched = false;
-  final Set<String> _selectedGenres = {'Все'};
+  DanceStyle? _selectedDanceStyle;
+
+  List<FriendCoach> _coaches = const [];
+  bool _loading = true;
+  Object? _loadError;
 
   @override
   void initState() {
     super.initState();
     _searchCoachesController = TextEditingController();
+    _loadCoaches();
+  }
+
+  Future<void> _loadCoaches() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
+    try {
+      final list = await _friendsRepository.getCoaches();
+      if (!mounted) return;
+      setState(() {
+        _coaches = list;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = e;
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -71,15 +76,10 @@ class _FriendsPageState extends State<FriendsPage> {
     super.dispose();
   }
 
-  Future<void> _openFiltersModal() {
-    return showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => const SizedBox(
-        height: 280,
-        child: Center(
-          child: Text('Фильтры скоро появятся'),
-        ),
+  void _openCoach(String coachId) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => FriendDetailPage(coachId: coachId),
       ),
     );
   }
@@ -88,39 +88,32 @@ class _FriendsPageState extends State<FriendsPage> {
   Widget build(BuildContext context) {
     final query = _searchCoachesController.text.trim().toLowerCase();
 
-    final genres = <String>[
-      'Все',
-      ...{
-        for (final coach in _mockCoaches) ...coach.styles,
-      },
-    ];
+    final filteredCoaches =
+        _coaches.where((coach) {
+          if (_selectedDanceStyle != null &&
+              !_coachMatchesDanceStyle(coach, _selectedDanceStyle!)) {
+            return false;
+          }
 
-    final filteredCoaches = _mockCoaches.where((coach) {
-      final hasSpecificGenreFilter =
-          _selectedGenres.isNotEmpty && !_selectedGenres.contains('Все');
+          if (query.isEmpty) {
+            return true;
+          }
 
-      if (hasSpecificGenreFilter &&
-          !coach.styles.any(_selectedGenres.contains)) {
-        return false;
-      }
-
-      if (query.isEmpty) {
-        return true;
-      }
-
-      return coach.name.toLowerCase().contains(query) ||
-          coach.stylesLabel.toLowerCase().contains(query) ||
-          coach.description.toLowerCase().contains(query);
-    }).toList();
+          return coach.name.toLowerCase().contains(query) ||
+              coach.stylesLabel.toLowerCase().contains(query) ||
+              coach.description.toLowerCase().contains(query);
+        }).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Все тренеры'),
+        scrolledUnderElevation: 0,
       ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AppTextField(
                 hint: 'Найти тренера',
@@ -134,59 +127,15 @@ class _FriendsPageState extends State<FriendsPage> {
                 onUnfocus: () => setState(() => _touched = true),
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  BaseButton(
-                    text: 'Фильтры',
-                    prefixIcon: const SvgIcon(AppIcons.filter, size: 20),
-                    onPressed: _openFiltersModal,
-                  ),
-                  const Spacer()
-                ],
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: 44,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: genres.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 12),
-                  itemBuilder: (context, index) {
-                    final genre = genres[index];
-                    final isSelected = _selectedGenres.contains(genre);
-
-                    return FilterChip(
-                      label: Text(genre),
-                      selected: isSelected,
-                      onSelected: (_) {
-                        setState(() {
-                          if (genre == 'Все') {
-                            _selectedGenres
-                              ..clear()
-                              ..add('Все');
-                            return;
-                          }
-
-                          _selectedGenres.remove('Все');
-
-                          if (isSelected) {
-                            _selectedGenres.remove(genre);
-                          } else {
-                            _selectedGenres.add(genre);
-                          }
-
-                          if (_selectedGenres.isEmpty) {
-                            _selectedGenres.add('Все');
-                          }
-                        });
-                      },
-                    );
-                  },
-                ),
+              DanceStyleDropdown(
+                selectedStyle: _selectedDanceStyle,
+                showAllChip: true,
+                onChanged:
+                    (style) => setState(() => _selectedDanceStyle = style),
               ),
               const SizedBox(height: 24),
               Expanded(
-                child: _FriendsListView(coaches: filteredCoaches),
+                child: _buildBody(filteredCoaches),
               ),
             ],
           ),
@@ -194,54 +143,48 @@ class _FriendsPageState extends State<FriendsPage> {
       ),
     );
   }
-}
 
-class _MockCoach {
-  const _MockCoach({
-    required this.name,
-    required this.styles,
-    required this.description,
-    required this.rating,
-    required this.image,
-  });
-
-  final String name;
-  final List<String> styles;
-  final String description;
-  final double rating;
-  final ImageProvider<Object> image;
-
-  String get stylesLabel => styles.join(' · ');
-}
-
-class _FriendsListView extends StatelessWidget {
-  const _FriendsListView({
-    super.key,
-    required this.coaches,
-  });
-
-  final List<_MockCoach> coaches;
-
-  @override
-  Widget build(BuildContext context) {
-    if (coaches.isEmpty) {
+  Widget _buildBody(List<FriendCoach> filteredCoaches) {
+    if (_loading) {
       return const Center(
-        child: Text('Ничего не найдено'),
+        child: CircularProgressIndicator(color: AppColors.purple500),
+      );
+    }
+    if (_loadError != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Не удалось загрузить список',
+              style: TextStyle(color: AppColors.gray0),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _loadCoaches,
+              child: const Text('Повторить'),
+            ),
+          ],
+        ),
       );
     }
 
+    if (filteredCoaches.isEmpty) {
+      return const Center(child: Text('Ничего не найдено'));
+    }
+
     return ListView.separated(
-      itemCount: coaches.length,
+      itemCount: filteredCoaches.length,
       separatorBuilder: (_, __) => const SizedBox(height: 20),
       itemBuilder: (context, index) {
-        final coach = coaches[index];
-
+        final coach = filteredCoaches[index];
         return FriendCard(
-          image: coach.image,
+          image: coachAvatarImageProvider(coach.avatarUrl),
           name: coach.name,
           styleName: coach.stylesLabel,
           description: coach.description,
           rating: coach.rating,
+          onTap: () => _openCoach(coach.id),
         );
       },
     );

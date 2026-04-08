@@ -73,9 +73,12 @@ class AppFilterChipGroup extends StatelessWidget {
     );
 
     if (scrollable) {
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: content,
+      return SizedBox(
+        height: 44,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: content,
+        ),
       );
     }
 
