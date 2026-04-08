@@ -14,6 +14,7 @@ import 'package:yandex_dance/features/events/domain/repositories/event_repositor
 import 'package:yandex_dance/features/events/presentation/models/event_preview.dart';
 import 'package:yandex_dance/features/events/presentation/pages/event_details_page.dart';
 import 'package:yandex_dance/features/events/presentation/widgets/event_card.dart';
+import 'package:yandex_dance/features/friends/presentation/pages/friend_detail_page.dart';
 import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
 
@@ -48,14 +49,18 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
     ).push(MaterialPageRoute(builder: (_) => EventDetailsPage(event: event)));
   }
 
+  void _openDancerDetails(String coachId) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => FriendDetailPage(coachId: coachId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.gray500,
-      appBar: AppBar(
-        title: Text('Главная', style: AppTextTheme.body3Regular20pt),
-        scrolledUnderElevation: 0,
-      ),
       body: SafeArea(
         child: StreamBuilder<List<DanceEvent>>(
           stream: _eventsStream,
@@ -188,6 +193,8 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                                 ),
                                 styleName: popularDancers[i].stylesLabel,
                                 description: popularDancers[i].description,
+                                onTap: () =>
+                                    _openDancerDetails(popularDancers[i].uid),
                               ),
                               if (i != popularDancers.length - 1)
                                 const SizedBox(height: 16),
@@ -253,6 +260,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                 const <String>[];
 
             return _PopularDancerItem(
+              uid: entry.key,
               name: _resolveProfileName(profile, entry.key),
               avatarUrl: profile?.avatarThumbUrl ?? profile?.avatarUrl,
               rating: profile?.rating ?? 0,
@@ -477,6 +485,7 @@ class _PopularEventItem {
 
 class _PopularDancerItem {
   const _PopularDancerItem({
+    required this.uid,
     required this.name,
     required this.avatarUrl,
     required this.rating,
@@ -485,6 +494,7 @@ class _PopularDancerItem {
     required this.eventsCount,
   });
 
+  final String uid;
   final String name;
   final String? avatarUrl;
   final double rating;

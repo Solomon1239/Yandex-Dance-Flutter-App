@@ -21,6 +21,8 @@ class UserProfile extends Equatable {
     this.introVideoThumbStoragePath,
     required this.danceStyles,
     required this.onboardingCompleted,
+    this.followersCount = 0,
+    this.followingCount = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -45,6 +47,12 @@ class UserProfile extends Equatable {
 
   final List<DanceStyle> danceStyles;
   final bool onboardingCompleted;
+
+  /// Число подписчиков (поле `followersCount` в Firestore).
+  final int followersCount;
+
+  /// Число подписок (поле `followingCount` в Firestore).
+  final int followingCount;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -80,6 +88,8 @@ class UserProfile extends Equatable {
     Optional<String>? introVideoThumbStoragePath,
     List<DanceStyle>? danceStyles,
     bool? onboardingCompleted,
+    int? followersCount,
+    int? followingCount,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -118,6 +128,8 @@ class UserProfile extends Equatable {
               : this.introVideoThumbStoragePath,
       danceStyles: danceStyles ?? this.danceStyles,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      followersCount: followersCount ?? this.followersCount,
+      followingCount: followingCount ?? this.followingCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -142,6 +154,8 @@ class UserProfile extends Equatable {
     introVideoThumbStoragePath,
     danceStyles,
     onboardingCompleted,
+    followersCount,
+    followingCount,
     createdAt,
     updatedAt,
   ];

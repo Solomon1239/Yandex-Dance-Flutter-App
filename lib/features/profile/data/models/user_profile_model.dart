@@ -21,6 +21,8 @@ class UserProfileModel {
     this.introVideoThumbStoragePath,
     required this.danceStyles,
     required this.onboardingCompleted,
+    this.followersCount = 0,
+    this.followingCount = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -45,6 +47,8 @@ class UserProfileModel {
 
   final List<String> danceStyles;
   final bool onboardingCompleted;
+  final int followersCount;
+  final int followingCount;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -70,6 +74,8 @@ class UserProfileModel {
       danceStyles: List<String>.from(data['danceStyles'] ?? const []),
       onboardingCompleted: data['onboardingCompleted'] as bool? ??
           List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
+      followersCount: (data['followersCount'] as num?)?.toInt() ?? 0,
+      followingCount: (data['followingCount'] as num?)?.toInt() ?? 0,
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
     );
@@ -94,6 +100,8 @@ class UserProfileModel {
       introVideoThumbStoragePath: introVideoThumbStoragePath,
       danceStyles: danceStyles.map(DanceStyleX.fromCode).toList(),
       onboardingCompleted: onboardingCompleted,
+      followersCount: followersCount,
+      followingCount: followingCount,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -118,6 +126,8 @@ class UserProfileModel {
       introVideoThumbStoragePath: entity.introVideoThumbStoragePath,
       danceStyles: entity.danceStyles.map((e) => e.code).toList(),
       onboardingCompleted: entity.onboardingCompleted,
+      followersCount: entity.followersCount,
+      followingCount: entity.followingCount,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -143,6 +153,8 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -168,6 +180,8 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

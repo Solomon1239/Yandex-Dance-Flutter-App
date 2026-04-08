@@ -105,10 +105,7 @@ class _FriendsPageState extends State<FriendsPage> {
         }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Все тренеры'),
-        scrolledUnderElevation: 0,
-      ),
+      backgroundColor: AppColors.gray500,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12),
