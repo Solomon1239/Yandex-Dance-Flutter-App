@@ -67,14 +67,14 @@ class _BottomNavBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _NavTab(
-              iconPath: AppIcons.calendar,
-              label: 'Ближайшие',
+              iconPath: AppIcons.home,
+              label: 'Главная',
               selected: currentIndex == 0,
               onTap: () => onTabSelected(0),
             ),
             _NavTab(
               iconPath: AppIcons.list,
-              label: 'Все',
+              label: 'Мероприятия',
               selected: currentIndex == 1,
               onTap: () => onTabSelected(1),
             ),

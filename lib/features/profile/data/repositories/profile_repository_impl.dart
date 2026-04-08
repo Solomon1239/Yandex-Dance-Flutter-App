@@ -33,6 +33,13 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final _uuid = const Uuid();
 
   @override
+  Stream<List<UserProfile>> watchAllProfiles() {
+    return _remote.watchAllProfiles().map(
+      (models) => models.map((model) => model.toEntity()).toList(),
+    );
+  }
+
+  @override
   Stream<UserProfile?> watchProfile(String uid) {
     return _remote.watchProfile(uid).map((model) => model?.toEntity());
   }

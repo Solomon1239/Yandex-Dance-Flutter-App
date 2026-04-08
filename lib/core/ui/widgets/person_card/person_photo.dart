@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/icons/app_icons.dart';
+import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 
 class PersonPhoto extends StatelessWidget {
   const PersonPhoto({
     super.key,
-    required this.image,
-    required this.rating,
+    this.image,
+    this.rating,
     required this.size,
+    this.badgeLabel,
+    this.badgeIcon = AppIcons.star,
+    this.showBadge = true,
   });
 
-  final ImageProvider image;
-  final double rating;
+  final ImageProvider<Object>? image;
+  final double? rating;
   final double size;
+  final String? badgeLabel;
+  final String badgeIcon;
+  final bool showBadge;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +35,22 @@ class PersonPhoto extends StatelessWidget {
     final badgeRightInset = size * 0.02;
     final badgeBottomOffset = size * 0.10;
 
+    if (!showBadge) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(borderRadius),
+        child:
+            image != null
+                ? Image(
+                  image: image!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => _PhotoPlaceholder(size: size),
+                )
+                : _PhotoPlaceholder(size: size),
+      );
+    }
+
     return SizedBox(
       width: size,
       height: size + badgeBottomOffset,
@@ -35,18 +59,24 @@ class PersonPhoto extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(borderRadius),
-            child: Image(
-              image: image,
-              width: size,
-              height: size,
-              fit: BoxFit.cover,
-            ),
+            child:
+                image != null
+                    ? Image(
+                      image: image!,
+                      width: size,
+                      height: size,
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (_, __, ___) => _PhotoPlaceholder(size: size),
+                    )
+                    : _PhotoPlaceholder(size: size),
           ),
           Positioned(
             right: badgeRightInset,
             bottom: -badgeBottomOffset,
             child: _RatingBadge(
-              rating: rating,
+              badgeLabel: badgeLabel ?? (rating ?? 0).toStringAsFixed(1),
+              badgeIcon: badgeIcon,
               horizontalPadding: badgeHorizontalPadding,
               verticalPadding: badgeVerticalPadding,
               borderRadius: badgeBorderRadius,
@@ -63,7 +93,8 @@ class PersonPhoto extends StatelessWidget {
 
 class _RatingBadge extends StatelessWidget {
   const _RatingBadge({
-    required this.rating,
+    required this.badgeLabel,
+    required this.badgeIcon,
     required this.horizontalPadding,
     required this.verticalPadding,
     required this.borderRadius,
@@ -72,7 +103,8 @@ class _RatingBadge extends StatelessWidget {
     required this.fontSize,
   });
 
-  final double rating;
+  final String badgeLabel;
+  final String badgeIcon;
   final double horizontalPadding;
   final double verticalPadding;
   final double borderRadius;
@@ -90,23 +122,16 @@ class _RatingBadge extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(borderRadius),
         gradient: LinearGradient(
-          colors: [
-            AppColors.purple500,
-            AppColors.pink500,
-          ],
+          colors: [AppColors.purple500, AppColors.pink500],
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.star,
-            color: AppColors.gray0,
-            size: iconSize,
-          ),
+          SvgIcon(badgeIcon, size: iconSize, color: AppColors.gray0),
           SizedBox(width: spacing),
           Text(
-            rating.toStringAsFixed(1),
+            badgeLabel,
             style: TextStyle(
               color: AppColors.gray0,
               fontWeight: FontWeight.bold,
@@ -114,6 +139,34 @@ class _RatingBadge extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PhotoPlaceholder extends StatelessWidget {
+  const _PhotoPlaceholder({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.purple600, AppColors.pink500],
+        ),
+      ),
+      child: Center(
+        child: SvgIcon(
+          AppIcons.user,
+          color: AppColors.gray0.withValues(alpha: 0.9),
+          size: size * 0.44,
+        ),
       ),
     );
   }
