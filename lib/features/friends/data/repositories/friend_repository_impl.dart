@@ -37,6 +37,6 @@ class FriendRepositoryImpl implements FriendRepository {
     required String targetUid,
   }) async {
     final profile = await _profileRepository.getProfile(uid);
-    return profile?.followingIds.contains(targetUid) ?? false;
+    return profile?.friendIds.contains(targetUid) ?? false;
   }
 }

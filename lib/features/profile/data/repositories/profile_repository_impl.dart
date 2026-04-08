@@ -243,9 +243,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
   @override
   Future<List<UserProfile>> getFollowing(String uid) async {
     final profile = await _remote.getProfile(uid);
-    if (profile == null || profile.followingIds.isEmpty) return [];
+    if (profile == null || profile.friendIds.isEmpty) return [];
 
-    final models = await _remote.getProfiles(profile.followingIds);
+    final models = await _remote.getProfiles(profile.friendIds);
     return models.map((m) => m.toEntity()).toList();
   }
 

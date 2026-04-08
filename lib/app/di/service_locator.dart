@@ -13,6 +13,11 @@ import 'package:yandex_dance/features/events/data/datasources/event_remote_data_
 import 'package:yandex_dance/features/friends/data/repositories/friend_repository_impl.dart';
 import 'package:yandex_dance/features/friends/domain/repositories/friend_repository.dart';
 import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friends_data_source.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friends_mock_data_source.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friends_remote_data_source.dart';
+import 'package:yandex_dance/features/friends/data/repositories/friends_repository_impl.dart';
+import 'package:yandex_dance/features/friends/domain/repositories/friends_repository.dart';
 import 'package:yandex_dance/features/events/data/repositories/event_repository_impl.dart';
 import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
 import 'package:yandex_dance/features/profile/data/datasources/profile_remote_data_source.dart';
