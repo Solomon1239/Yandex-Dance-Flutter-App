@@ -74,7 +74,7 @@ class _BottomNavBar extends StatelessWidget {
             ),
             _NavTab(
               iconPath: AppIcons.list,
-              label: 'Все',
+              label: 'Мероприятия',
               selected: currentIndex == 1,
               onTap: () => onTabSelected(1),
             ),
