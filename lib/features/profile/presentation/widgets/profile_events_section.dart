@@ -13,10 +13,12 @@ class ProfileEventsSection extends StatelessWidget {
     super.key,
     required this.events,
     required this.onSeeAll,
+    this.onEventTap,
   });
 
   final List<DanceEvent> events;
   final VoidCallback onSeeAll;
+  final void Function(DanceEvent event)? onEventTap;
 
   @override
   Widget build(BuildContext context) {
@@ -66,8 +68,13 @@ class ProfileEventsSection extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               itemCount: events.length,
               separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemBuilder:
-                  (context, index) => _EventMiniCard(event: events[index]),
+              itemBuilder: (context, index) => _EventMiniCard(
+                event: events[index],
+                onTap:
+                    onEventTap != null
+                        ? () => onEventTap!(events[index])
+                        : null,
+              ),
             ),
           ),
       ],
@@ -76,13 +83,14 @@ class ProfileEventsSection extends StatelessWidget {
 }
 
 class _EventMiniCard extends StatelessWidget {
-  const _EventMiniCard({required this.event});
+  const _EventMiniCard({required this.event, this.onTap});
 
   final DanceEvent event;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final card = Container(
       width: 220,
       decoration: BoxDecoration(
         color: AppColors.gray400,
@@ -152,6 +160,19 @@ class _EventMiniCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+
+    if (onTap == null) {
+      return card;
+    }
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: card,
       ),
     );
   }

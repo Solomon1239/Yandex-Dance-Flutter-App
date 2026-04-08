@@ -37,6 +37,7 @@ class _EditProfilePageState extends State<EditProfilePage>
   final _bioController = TextEditingController();
 
   final _nameFocus = FocusNode();
+  final _cityFocus = FocusNode();
   final _bioFocus = FocusNode();
 
   bool _nameTouched = false;
@@ -91,6 +92,7 @@ class _EditProfilePageState extends State<EditProfilePage>
     _nameController.dispose();
     _bioController.dispose();
     _nameFocus.dispose();
+    _cityFocus.dispose();
     _bioFocus.dispose();
     _manager.close();
     super.dispose();
@@ -232,7 +234,7 @@ class _EditProfilePageState extends State<EditProfilePage>
                       contoller: _nameController,
                       touched: _nameTouched,
                       focusNode: _nameFocus,
-                      nextFocusNode: _bioFocus,
+                      nextFocusNode: _cityFocus,
                       textInputAction: TextInputAction.next,
                       validator:
                           (v) => Validators.requiredText(v, field: 'Имя'),
@@ -245,6 +247,8 @@ class _EditProfilePageState extends State<EditProfilePage>
                     CityPickerField(
                       value: _selectedCity,
                       searchService: _citySearchService,
+                      focusNode: _cityFocus,
+                      nextFocusNode: _bioFocus,
                       showError: _cityError && _selectedCity == null,
                       errorText: 'Выберите город из списка',
                       onChanged:

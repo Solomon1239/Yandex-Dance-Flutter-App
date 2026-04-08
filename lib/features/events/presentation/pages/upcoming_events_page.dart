@@ -108,10 +108,13 @@ class _UpcomingEventTile extends StatelessWidget {
       ),
       clipBehavior: Clip.antiAlias,
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          // ListView даёт элементу бесконечную maxHeight; без фиксированной
+          // высоты превью Row/картинка с BoxFit.cover не получают конечный layout.
           SizedBox(
             width: 110,
+            height: 110,
             child:
                 event.coverThumbUrl != null
                     ? CachedNetworkImage(
