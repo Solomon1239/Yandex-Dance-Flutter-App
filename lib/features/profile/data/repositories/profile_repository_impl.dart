@@ -64,7 +64,6 @@ class ProfileRepositoryImpl implements ProfileRepository {
       bio: null,
       city: null,
       dateOfBirth: null,
-      rating: null,
       avatarUrl: photoUrl,
       avatarThumbUrl: photoUrl,
       avatarStoragePath: null,
@@ -226,52 +225,39 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<void> addFriend({
+  Future<void> follow({
     required String uid,
-    required String friendUid,
+    required String targetUid,
   }) async {
-    await _remote.addFriend(uid: uid, friendUid: friendUid);
+    await _remote.addFollowing(uid: uid, targetUid: targetUid);
   }
 
   @override
-  Future<void> removeFriend({
+  Future<void> unfollow({
     required String uid,
-    required String friendUid,
+    required String targetUid,
   }) async {
-    await _remote.removeFriend(uid: uid, friendUid: friendUid);
+    await _remote.removeFollowing(uid: uid, targetUid: targetUid);
   }
 
   @override
-  Future<List<UserProfile>> getFriends(String uid) async {
+  Future<List<UserProfile>> getFollowing(String uid) async {
     final profile = await _remote.getProfile(uid);
-    if (profile == null || profile.friendIds.isEmpty) return [];
+    if (profile == null || profile.followingIds.isEmpty) return [];
 
-    final models = await _remote.getProfiles(profile.friendIds);
+    final models = await _remote.getProfiles(profile.followingIds);
     return models.map((m) => m.toEntity()).toList();
   }
 
   @override
-  Future<void> rateUser({
-    required String targetUid,
-    required String raterUid,
-    required double value,
-  }) async {
-    await _remote.setRating(
-      targetUid: targetUid,
-      raterUid: raterUid,
-      value: value,
-    );
-    await _remote.recalculateRating(targetUid);
+  Future<List<UserProfile>> getFollowers(String uid) async {
+    final models = await _remote.getFollowers(uid);
+    return models.map((m) => m.toEntity()).toList();
   }
 
   @override
-  Future<double?> getUserRatingByRater({
-    required String targetUid,
-    required String raterUid,
-  }) async {
-    return _remote.getRatingByRater(
-      targetUid: targetUid,
-      raterUid: raterUid,
-    );
+  Future<List<UserProfile>> searchUsers(String query) async {
+    final models = await _remote.searchUsers(query);
+    return models.map((m) => m.toEntity()).toList();
   }
 }

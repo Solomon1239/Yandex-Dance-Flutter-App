@@ -10,8 +10,6 @@ class UserProfileModel {
     this.bio,
     this.city,
     this.dateOfBirth,
-    this.rating,
-    this.ratingCount = 0,
     this.avatarUrl,
     this.avatarThumbUrl,
     this.avatarStoragePath,
@@ -22,7 +20,7 @@ class UserProfileModel {
     this.introVideoThumbStoragePath,
     required this.danceStyles,
     required this.onboardingCompleted,
-    this.friendIds = const [],
+    this.followingIds = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -33,9 +31,6 @@ class UserProfileModel {
   final String? bio;
   final String? city;
   final DateTime? dateOfBirth;
-  final double? rating;
-  final int ratingCount;
-
   final String? avatarUrl;
   final String? avatarThumbUrl;
   final String? avatarStoragePath;
@@ -49,7 +44,7 @@ class UserProfileModel {
   final List<String> danceStyles;
   final bool onboardingCompleted;
 
-  final List<String> friendIds;
+  final List<String> followingIds;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -63,8 +58,6 @@ class UserProfileModel {
       bio: data['bio'] as String?,
       city: data['city'] as String?,
       dateOfBirth: _dateFromDynamic(data['dateOfBirth']),
-      rating: (data['rating'] as num?)?.toDouble(),
-      ratingCount: (data['ratingCount'] as num?)?.toInt() ?? 0,
       avatarUrl: data['avatarUrl'] as String?,
       avatarThumbUrl: data['avatarThumbUrl'] as String?,
       avatarStoragePath: data['avatarStoragePath'] as String?,
@@ -76,7 +69,7 @@ class UserProfileModel {
       danceStyles: List<String>.from(data['danceStyles'] ?? const []),
       onboardingCompleted: data['onboardingCompleted'] as bool? ??
           List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
-      friendIds: List<String>.from(data['friendIds'] ?? const []),
+      followingIds: List<String>.from(data['followingIds'] ?? data['friendIds'] ?? const []),
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
     );
@@ -90,8 +83,6 @@ class UserProfileModel {
       bio: bio,
       city: city,
       dateOfBirth: dateOfBirth,
-      rating: rating,
-      ratingCount: ratingCount,
       avatarUrl: avatarUrl,
       avatarThumbUrl: avatarThumbUrl,
       avatarStoragePath: avatarStoragePath,
@@ -102,7 +93,7 @@ class UserProfileModel {
       introVideoThumbStoragePath: introVideoThumbStoragePath,
       danceStyles: danceStyles.map(DanceStyleX.fromCode).toList(),
       onboardingCompleted: onboardingCompleted,
-      friendIds: friendIds,
+      followingIds: followingIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -116,8 +107,6 @@ class UserProfileModel {
       bio: entity.bio,
       city: entity.city,
       dateOfBirth: entity.dateOfBirth,
-      rating: entity.rating,
-      ratingCount: entity.ratingCount,
       avatarUrl: entity.avatarUrl,
       avatarThumbUrl: entity.avatarThumbUrl,
       avatarStoragePath: entity.avatarStoragePath,
@@ -128,7 +117,7 @@ class UserProfileModel {
       introVideoThumbStoragePath: entity.introVideoThumbStoragePath,
       danceStyles: entity.danceStyles.map((e) => e.code).toList(),
       onboardingCompleted: entity.onboardingCompleted,
-      friendIds: entity.friendIds,
+      followingIds: entity.followingIds,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -143,8 +132,6 @@ class UserProfileModel {
       'city': city,
       'dateOfBirth':
           dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
-      'rating': rating,
-      'ratingCount': ratingCount,
       'avatarUrl': avatarUrl,
       'avatarThumbUrl': avatarThumbUrl,
       'avatarStoragePath': avatarStoragePath,
@@ -155,7 +142,7 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
-      'friendIds': friendIds,
+      'followingIds': followingIds,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -170,8 +157,6 @@ class UserProfileModel {
       'city': city,
       'dateOfBirth':
           dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
-      'rating': rating,
-      'ratingCount': ratingCount,
       'avatarUrl': avatarUrl,
       'avatarThumbUrl': avatarThumbUrl,
       'avatarStoragePath': avatarStoragePath,
@@ -182,7 +167,7 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
-      'friendIds': friendIds,
+      'followingIds': followingIds,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

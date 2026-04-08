@@ -10,8 +10,6 @@ class UserProfile extends Equatable {
     this.bio,
     this.city,
     this.dateOfBirth,
-    this.rating,
-    this.ratingCount = 0,
     this.avatarUrl,
     this.avatarThumbUrl,
     this.avatarStoragePath,
@@ -22,7 +20,7 @@ class UserProfile extends Equatable {
     this.introVideoThumbStoragePath,
     required this.danceStyles,
     required this.onboardingCompleted,
-    this.friendIds = const [],
+    this.followingIds = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -33,9 +31,6 @@ class UserProfile extends Equatable {
   final String? bio;
   final String? city;
   final DateTime? dateOfBirth;
-  final double? rating;
-  final int ratingCount;
-
   final String? avatarUrl;
   final String? avatarThumbUrl;
   final String? avatarStoragePath;
@@ -49,7 +44,7 @@ class UserProfile extends Equatable {
   final List<DanceStyle> danceStyles;
   final bool onboardingCompleted;
 
-  final List<String> friendIds;
+  final List<String> followingIds;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -74,8 +69,6 @@ class UserProfile extends Equatable {
     String? bio,
     String? city,
     Optional<DateTime>? dateOfBirth,
-    double? rating,
-    int? ratingCount,
     Optional<String>? avatarUrl,
     Optional<String>? avatarThumbUrl,
     Optional<String>? avatarStoragePath,
@@ -86,7 +79,7 @@ class UserProfile extends Equatable {
     Optional<String>? introVideoThumbStoragePath,
     List<DanceStyle>? danceStyles,
     bool? onboardingCompleted,
-    List<String>? friendIds,
+    List<String>? followingIds,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -97,8 +90,6 @@ class UserProfile extends Equatable {
       bio: bio ?? this.bio,
       city: city ?? this.city,
       dateOfBirth: dateOfBirth != null ? dateOfBirth.value : this.dateOfBirth,
-      rating: rating ?? this.rating,
-      ratingCount: ratingCount ?? this.ratingCount,
       avatarUrl: avatarUrl != null ? avatarUrl.value : this.avatarUrl,
       avatarThumbUrl:
           avatarThumbUrl != null ? avatarThumbUrl.value : this.avatarThumbUrl,
@@ -126,7 +117,7 @@ class UserProfile extends Equatable {
               : this.introVideoThumbStoragePath,
       danceStyles: danceStyles ?? this.danceStyles,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
-      friendIds: friendIds ?? this.friendIds,
+      followingIds: followingIds ?? this.followingIds,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -140,8 +131,6 @@ class UserProfile extends Equatable {
     bio,
     city,
     dateOfBirth,
-    rating,
-    ratingCount,
     avatarUrl,
     avatarThumbUrl,
     avatarStoragePath,
@@ -152,7 +141,7 @@ class UserProfile extends Equatable {
     introVideoThumbStoragePath,
     danceStyles,
     onboardingCompleted,
-    friendIds,
+    followingIds,
     createdAt,
     updatedAt,
   ];

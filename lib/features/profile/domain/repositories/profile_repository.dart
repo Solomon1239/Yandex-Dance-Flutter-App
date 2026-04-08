@@ -71,20 +71,13 @@ abstract interface class ProfileRepository {
   /// документе профиля. Возвращает профиль без видео.
   Future<UserProfile> deleteIntroVideo({required UserProfile currentProfile});
 
-  Future<void> addFriend({required String uid, required String friendUid});
+  Future<void> follow({required String uid, required String targetUid});
 
-  Future<void> removeFriend({required String uid, required String friendUid});
+  Future<void> unfollow({required String uid, required String targetUid});
 
-  Future<List<UserProfile>> getFriends(String uid);
+  Future<List<UserProfile>> getFollowing(String uid);
 
-  Future<void> rateUser({
-    required String targetUid,
-    required String raterUid,
-    required double value,
-  });
+  Future<List<UserProfile>> getFollowers(String uid);
 
-  Future<double?> getUserRatingByRater({
-    required String targetUid,
-    required String raterUid,
-  });
+  Future<List<UserProfile>> searchUsers(String query);
 }

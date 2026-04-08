@@ -1,25 +1,21 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
+import 'package:yandex_dance/core/mixins/state_manager_listener_mixin.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/ui/widgets/person_card/friend_card.dart';
-import 'package:yandex_dance/features/create_event/presentation/widgets/dance_style_dropdown.dart';
-import 'package:yandex_dance/features/friends/domain/entities/friend_coach.dart';
-import 'package:yandex_dance/features/friends/domain/repositories/friends_repository.dart';
-import 'package:yandex_dance/features/friends/presentation/pages/friend_detail_page.dart';
-import 'package:yandex_dance/features/friends/presentation/widgets/coach_avatar_image_provider.dart';
+import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
+import 'package:yandex_dance/features/friends/presentation/state/friends_state.dart';
+import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
 
-bool _coachMatchesDanceStyle(FriendCoach coach, DanceStyle style) {
-  final key = style.title.toLowerCase().replaceAll(RegExp(r'[\s-]'), '');
-  return coach.styles.any(
-    (s) =>
-        s.toLowerCase().replaceAll(RegExp(r'[\s-]'), '') == key ||
-        s.toLowerCase().contains(style.title.toLowerCase()) ||
-        style.title.toLowerCase().contains(s.toLowerCase()),
-  );
+ImageProvider<Object>? _avatarProvider(UserProfile profile) {
+  final url = profile.avatarThumbUrl ?? profile.avatarUrl;
+  if (url == null || url.isEmpty) return null;
+  return CachedNetworkImageProvider(url);
 }
 
 class FriendsPage extends StatefulWidget {
@@ -29,84 +25,41 @@ class FriendsPage extends StatefulWidget {
   State<FriendsPage> createState() => _FriendsPageState();
 }
 
-class _FriendsPageState extends State<FriendsPage> {
-  final FriendsRepository _friendsRepository = sl<FriendsRepository>();
-
-  late final TextEditingController _searchCoachesController;
-  final FocusNode _searchCoachesFocusNode = FocusNode();
+class _FriendsPageState extends State<FriendsPage>
+    with StateManagerListenerMixin<FriendsPage, FriendsState> {
+  late final FriendsManager _manager;
+  late final TextEditingController _searchController;
+  final FocusNode _searchFocusNode = FocusNode();
   bool _touched = false;
-  DanceStyle? _selectedDanceStyle;
 
-  List<FriendCoach> _coaches = const [];
-  bool _loading = true;
-  Object? _loadError;
+  @override
+  Stream<FriendsState> get stateStream => _manager.stream;
+
+  @override
+  String? errorMessageOf(FriendsState state) => state.errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _searchCoachesController = TextEditingController();
-    _loadCoaches();
-  }
-
-  Future<void> _loadCoaches() async {
-    setState(() {
-      _loading = true;
-      _loadError = null;
-    });
-    try {
-      final list = await _friendsRepository.getCoaches();
-      if (!mounted) return;
-      setState(() {
-        _coaches = list;
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loadError = e;
-        _loading = false;
-      });
-    }
+    _manager = sl<FriendsManager>();
+    _searchController = TextEditingController();
+    attachStateListener();
+    _manager.start();
   }
 
   @override
   void dispose() {
-    _searchCoachesController.dispose();
-    _searchCoachesFocusNode.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _manager.close();
     super.dispose();
-  }
-
-  void _openCoach(String coachId) {
-    Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => FriendDetailPage(coachId: coachId),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final query = _searchCoachesController.text.trim().toLowerCase();
-
-    final filteredCoaches =
-        _coaches.where((coach) {
-          if (_selectedDanceStyle != null &&
-              !_coachMatchesDanceStyle(coach, _selectedDanceStyle!)) {
-            return false;
-          }
-
-          if (query.isEmpty) {
-            return true;
-          }
-
-          return coach.name.toLowerCase().contains(query) ||
-              coach.stylesLabel.toLowerCase().contains(query) ||
-              coach.description.toLowerCase().contains(query);
-        }).toList();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Все тренеры'),
+        title: const Text('Подписки'),
         scrolledUnderElevation: 0,
       ),
       body: SafeArea(
@@ -116,26 +69,26 @@ class _FriendsPageState extends State<FriendsPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AppTextField(
-                hint: 'Найти тренера',
+                hint: 'Поиск',
                 state: InputState.initial,
                 prefixIcon: AppIcons.search,
-                contoller: _searchCoachesController,
+                contoller: _searchController,
                 touched: _touched,
-                focusNode: _searchCoachesFocusNode,
+                focusNode: _searchFocusNode,
                 onChanged: (_) => setState(() => _touched = true),
                 onFocusChange: () => setState(() => _touched = true),
                 onUnfocus: () => setState(() => _touched = true),
               ),
-              const SizedBox(height: 16),
-              DanceStyleDropdown(
-                selectedStyle: _selectedDanceStyle,
-                showAllChip: true,
-                onChanged:
-                    (style) => setState(() => _selectedDanceStyle = style),
-              ),
               const SizedBox(height: 24),
               Expanded(
-                child: _buildBody(filteredCoaches),
+                child: StreamBuilder<FriendsState>(
+                  stream: _manager.stream,
+                  initialData: _manager.state,
+                  builder: (context, snapshot) {
+                    final state = snapshot.data ?? const FriendsState();
+                    return _buildBody(state);
+                  },
+                ),
               ),
             ],
           ),
@@ -144,24 +97,24 @@ class _FriendsPageState extends State<FriendsPage> {
     );
   }
 
-  Widget _buildBody(List<FriendCoach> filteredCoaches) {
-    if (_loading) {
+  Widget _buildBody(FriendsState state) {
+    if (state.status == FriendsStatus.loading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.purple500),
       );
     }
-    if (_loadError != null) {
+    if (state.status == FriendsStatus.error) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Не удалось загрузить список',
+              'Не удалось загрузить подписки',
               style: TextStyle(color: AppColors.gray0),
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: _loadCoaches,
+              onPressed: () => _manager.start(),
               child: const Text('Повторить'),
             ),
           ],
@@ -169,22 +122,31 @@ class _FriendsPageState extends State<FriendsPage> {
       );
     }
 
-    if (filteredCoaches.isEmpty) {
-      return const Center(child: Text('Ничего не найдено'));
+    final query = _searchController.text.trim().toLowerCase();
+    final filtered = state.following.where((user) {
+      if (query.isEmpty) return true;
+      return (user.displayName?.toLowerCase().contains(query) ?? false) ||
+          (user.city?.toLowerCase().contains(query) ?? false);
+    }).toList();
+
+    if (filtered.isEmpty) {
+      return const Center(child: Text('Нет подписок'));
     }
 
     return ListView.separated(
-      itemCount: filteredCoaches.length,
+      itemCount: filtered.length,
       separatorBuilder: (_, __) => const SizedBox(height: 20),
       itemBuilder: (context, index) {
-        final coach = filteredCoaches[index];
+        final user = filtered[index];
+        final stylesLabel = user.danceStyles.isEmpty
+            ? ''
+            : user.danceStyles.map((s) => s.title).take(2).join(' · ');
+
         return FriendCard(
-          image: coachAvatarImageProvider(coach.avatarUrl),
-          name: coach.name,
-          styleName: coach.stylesLabel,
-          description: coach.description,
-          rating: coach.rating,
-          onTap: () => _openCoach(coach.id),
+          image: _avatarProvider(user),
+          name: user.displayName ?? '',
+          styleName: stylesLabel,
+          description: user.bio ?? '',
         );
       },
     );

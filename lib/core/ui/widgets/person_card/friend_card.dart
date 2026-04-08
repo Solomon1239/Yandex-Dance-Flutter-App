@@ -8,7 +8,7 @@ import 'package:yandex_dance/core/ui/widgets/person_card/person_photo.dart';
 class FriendCard extends StatelessWidget {
   final ImageProvider<Object>? image;
   final String name;
-  final double rating;
+  final double? rating;
   final String styleName;
   final String description;
   final String? imageBadgeLabel;
@@ -22,7 +22,7 @@ class FriendCard extends StatelessWidget {
     super.key,
     this.image,
     required this.name,
-    required this.rating,
+    this.rating,
     required this.styleName,
     required this.description,
     this.imageBadgeLabel,
@@ -60,7 +60,7 @@ class FriendCard extends StatelessWidget {
             size: 70,
             badgeLabel: imageBadgeLabel,
             badgeIcon: imageBadgeIcon,
-            showBadge: showImageBadge,
+            showBadge: rating != null && showImageBadge,
           ),
           const SizedBox(width: 20),
           Expanded(

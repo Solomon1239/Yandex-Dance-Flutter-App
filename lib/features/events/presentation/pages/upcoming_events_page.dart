@@ -181,7 +181,6 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                                   popularDancers[i].avatarUrl,
                                 ),
                                 name: popularDancers[i].name,
-                                rating: popularDancers[i].rating,
                                 showImageBadge: false,
                                 headerBadgeLabel: _formatDancerBadge(
                                   popularDancers[i].eventsCount,
@@ -255,7 +254,6 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
             return _PopularDancerItem(
               name: _resolveProfileName(profile, entry.key),
               avatarUrl: profile?.avatarThumbUrl ?? profile?.avatarUrl,
-              rating: profile?.rating ?? 0,
               stylesLabel:
                   styles.isEmpty ? 'Без стиля' : styles.take(2).join(' · '),
               description: _buildDancerDescription(profile, entry.value),
@@ -479,7 +477,6 @@ class _PopularDancerItem {
   const _PopularDancerItem({
     required this.name,
     required this.avatarUrl,
-    required this.rating,
     required this.stylesLabel,
     required this.description,
     required this.eventsCount,
@@ -487,7 +484,6 @@ class _PopularDancerItem {
 
   final String name;
   final String? avatarUrl;
-  final double rating;
   final String stylesLabel;
   final String description;
   final int eventsCount;
