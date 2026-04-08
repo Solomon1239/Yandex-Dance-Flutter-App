@@ -68,4 +68,27 @@ abstract interface class ProfileRepository {
   Future<UserProfile> deleteIntroVideo({
     required UserProfile currentProfile,
   });
+
+  Future<void> addFriend({
+    required String uid,
+    required String friendUid,
+  });
+
+  Future<void> removeFriend({
+    required String uid,
+    required String friendUid,
+  });
+
+  Future<List<UserProfile>> getFriends(String uid);
+
+  Future<void> rateUser({
+    required String targetUid,
+    required String raterUid,
+    required double value,
+  });
+
+  Future<double?> getUserRatingByRater({
+    required String targetUid,
+    required String raterUid,
+  });
 }

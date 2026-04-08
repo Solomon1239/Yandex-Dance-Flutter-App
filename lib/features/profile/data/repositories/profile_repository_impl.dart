@@ -217,4 +217,54 @@ class ProfileRepositoryImpl implements ProfileRepository {
       throw const AppException.unknown('Не удалось удалить видео');
     }
   }
+
+  @override
+  Future<void> addFriend({
+    required String uid,
+    required String friendUid,
+  }) async {
+    await _remote.addFriend(uid: uid, friendUid: friendUid);
+  }
+
+  @override
+  Future<void> removeFriend({
+    required String uid,
+    required String friendUid,
+  }) async {
+    await _remote.removeFriend(uid: uid, friendUid: friendUid);
+  }
+
+  @override
+  Future<List<UserProfile>> getFriends(String uid) async {
+    final profile = await _remote.getProfile(uid);
+    if (profile == null || profile.friendIds.isEmpty) return [];
+
+    final models = await _remote.getProfiles(profile.friendIds);
+    return models.map((m) => m.toEntity()).toList();
+  }
+
+  @override
+  Future<void> rateUser({
+    required String targetUid,
+    required String raterUid,
+    required double value,
+  }) async {
+    await _remote.setRating(
+      targetUid: targetUid,
+      raterUid: raterUid,
+      value: value,
+    );
+    await _remote.recalculateRating(targetUid);
+  }
+
+  @override
+  Future<double?> getUserRatingByRater({
+    required String targetUid,
+    required String raterUid,
+  }) async {
+    return _remote.getRatingByRater(
+      targetUid: targetUid,
+      raterUid: raterUid,
+    );
+  }
 }

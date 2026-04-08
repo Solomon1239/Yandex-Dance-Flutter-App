@@ -11,6 +11,7 @@ class UserProfileModel {
     this.city,
     this.dateOfBirth,
     this.rating,
+    this.ratingCount = 0,
     this.avatarUrl,
     this.avatarThumbUrl,
     this.avatarStoragePath,
@@ -21,6 +22,7 @@ class UserProfileModel {
     this.introVideoThumbStoragePath,
     required this.danceStyles,
     required this.onboardingCompleted,
+    this.friendIds = const [],
     this.createdAt,
     this.updatedAt,
   });
@@ -32,6 +34,7 @@ class UserProfileModel {
   final String? city;
   final DateTime? dateOfBirth;
   final double? rating;
+  final int ratingCount;
 
   final String? avatarUrl;
   final String? avatarThumbUrl;
@@ -46,6 +49,8 @@ class UserProfileModel {
   final List<String> danceStyles;
   final bool onboardingCompleted;
 
+  final List<String> friendIds;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -59,6 +64,7 @@ class UserProfileModel {
       city: data['city'] as String?,
       dateOfBirth: _dateFromDynamic(data['dateOfBirth']),
       rating: (data['rating'] as num?)?.toDouble(),
+      ratingCount: (data['ratingCount'] as num?)?.toInt() ?? 0,
       avatarUrl: data['avatarUrl'] as String?,
       avatarThumbUrl: data['avatarThumbUrl'] as String?,
       avatarStoragePath: data['avatarStoragePath'] as String?,
@@ -70,6 +76,7 @@ class UserProfileModel {
       danceStyles: List<String>.from(data['danceStyles'] ?? const []),
       onboardingCompleted: data['onboardingCompleted'] as bool? ??
           List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
+      friendIds: List<String>.from(data['friendIds'] ?? const []),
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
     );
@@ -84,6 +91,7 @@ class UserProfileModel {
       city: city,
       dateOfBirth: dateOfBirth,
       rating: rating,
+      ratingCount: ratingCount,
       avatarUrl: avatarUrl,
       avatarThumbUrl: avatarThumbUrl,
       avatarStoragePath: avatarStoragePath,
@@ -94,6 +102,7 @@ class UserProfileModel {
       introVideoThumbStoragePath: introVideoThumbStoragePath,
       danceStyles: danceStyles.map(DanceStyleX.fromCode).toList(),
       onboardingCompleted: onboardingCompleted,
+      friendIds: friendIds,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -108,6 +117,7 @@ class UserProfileModel {
       city: entity.city,
       dateOfBirth: entity.dateOfBirth,
       rating: entity.rating,
+      ratingCount: entity.ratingCount,
       avatarUrl: entity.avatarUrl,
       avatarThumbUrl: entity.avatarThumbUrl,
       avatarStoragePath: entity.avatarStoragePath,
@@ -118,6 +128,7 @@ class UserProfileModel {
       introVideoThumbStoragePath: entity.introVideoThumbStoragePath,
       danceStyles: entity.danceStyles.map((e) => e.code).toList(),
       onboardingCompleted: entity.onboardingCompleted,
+      friendIds: entity.friendIds,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -133,6 +144,7 @@ class UserProfileModel {
       'dateOfBirth':
           dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
       'rating': rating,
+      'ratingCount': ratingCount,
       'avatarUrl': avatarUrl,
       'avatarThumbUrl': avatarThumbUrl,
       'avatarStoragePath': avatarStoragePath,
@@ -143,6 +155,7 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
+      'friendIds': friendIds,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -158,6 +171,7 @@ class UserProfileModel {
       'dateOfBirth':
           dateOfBirth != null ? Timestamp.fromDate(dateOfBirth!) : null,
       'rating': rating,
+      'ratingCount': ratingCount,
       'avatarUrl': avatarUrl,
       'avatarThumbUrl': avatarThumbUrl,
       'avatarStoragePath': avatarStoragePath,
@@ -168,6 +182,7 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
+      'friendIds': friendIds,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

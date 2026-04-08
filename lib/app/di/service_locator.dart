@@ -10,6 +10,10 @@ import 'package:yandex_dance/features/auth/data/repositories/auth_repository_imp
 import 'package:yandex_dance/features/auth/domain/repositories/auth_repository.dart';
 import 'package:yandex_dance/features/auth/presentation/managers/auth_manager.dart';
 import 'package:yandex_dance/features/events/data/datasources/event_remote_data_source.dart';
+import 'package:yandex_dance/features/friends/data/datasources/friend_remote_data_source.dart';
+import 'package:yandex_dance/features/friends/data/repositories/friend_repository_impl.dart';
+import 'package:yandex_dance/features/friends/domain/repositories/friend_repository.dart';
+import 'package:yandex_dance/features/friends/presentation/managers/friends_manager.dart';
 import 'package:yandex_dance/features/events/data/repositories/event_repository_impl.dart';
 import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
 import 'package:yandex_dance/features/profile/data/datasources/profile_remote_data_source.dart';
@@ -65,6 +69,9 @@ Future<void> configureDependencies() async {
     )
     ..registerLazySingleton<EventRemoteDataSource>(
       () => EventRemoteDataSource(firestore: sl<FirebaseFirestore>()),
+    )
+    ..registerLazySingleton<FriendRemoteDataSource>(
+      () => FriendRemoteDataSource(firestore: sl<FirebaseFirestore>()),
     );
 
   sl
@@ -88,6 +95,12 @@ Future<void> configureDependencies() async {
         storageService: sl<StorageService>(),
         imageOptimizer: sl<ImageOptimizer>(),
         videoOptimizer: sl<VideoOptimizer>(),
+      ),
+    )
+    ..registerLazySingleton<FriendRepository>(
+      () => FriendRepositoryImpl(
+        remote: sl<FriendRemoteDataSource>(),
+        profileRepository: sl<ProfileRepository>(),
       ),
     );
 
@@ -121,6 +134,13 @@ Future<void> configureDependencies() async {
       profileRepository: sl<ProfileRepository>(),
       authRepository: sl<AuthRepository>(),
       mediaPickerService: sl<MediaPickerService>(),
+    ),
+  );
+  sl.registerFactory<FriendsManager>(
+    () => FriendsManager(
+      friendRepository: sl<FriendRepository>(),
+      profileRepository: sl<ProfileRepository>(),
+      authRepository: sl<AuthRepository>(),
     ),
   );
 }
