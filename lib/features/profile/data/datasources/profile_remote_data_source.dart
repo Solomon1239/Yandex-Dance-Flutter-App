@@ -14,6 +14,16 @@ class ProfileRemoteDataSource {
   DocumentReference<Map<String, dynamic>> _doc(String uid) =>
       _firestore.collection('users').doc(uid);
 
+  /// Подписка на все профили из коллекции `users`.
+  Stream<List<UserProfileModel>> watchAllProfiles() {
+    return _firestore
+        .collection('users')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs.map(UserProfileModel.fromDoc).toList(),
+        );
+  }
+
   /// Подписка на документ пользователя. Возвращает `null`, если
   /// документа ещё нет или он пустой — например, сразу после регистрации.
   Stream<UserProfileModel?> watchProfile(String uid) {
