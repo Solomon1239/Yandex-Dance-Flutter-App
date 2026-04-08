@@ -33,23 +33,15 @@ class FriendCard extends StatelessWidget {
     this.onTap,
   });
 
-  static const _radius = 32.0;
-
   @override
   Widget build(BuildContext context) {
     final card = Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF101010),
-        borderRadius: BorderRadius.circular(_radius),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 30,
-            offset: Offset(0, 18),
-          ),
-        ],
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppColors.cardShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +112,7 @@ class FriendCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(_radius),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: card,
       ),
     );
@@ -136,7 +128,7 @@ class _StylePill extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0xFF25211F),
+        color: AppColors.cardChipBackground,
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: AppColors.purple500.withValues(alpha: 0.28)),
       ),

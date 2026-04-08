@@ -53,19 +53,13 @@ class EventCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(32),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF101010),
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x40000000),
-                blurRadius: 30,
-                offset: Offset(0, 18),
-              ),
-            ],
+            color: AppColors.cardSurface,
+            borderRadius: BorderRadius.circular(AppColors.cardRadius),
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: AppColors.cardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -145,19 +139,13 @@ class _CompactEventCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppColors.cardRadius),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x40000000),
-                blurRadius: 24,
-                offset: Offset(0, 14),
-              ),
-            ],
+            color: AppColors.cardSurface,
+            borderRadius: BorderRadius.circular(AppColors.cardRadius),
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: AppColors.cardShadow,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,7 +191,7 @@ class _CompactEventCard extends StatelessWidget {
                           borderColor: AppColors.purple500.withValues(
                             alpha: 0.28,
                           ),
-                          backgroundColor: const Color(0xFF25211F),
+                          backgroundColor: AppColors.cardChipBackground,
                         ),
                         _CompactInfoPill(
                           iconPath: AppIcons.friends,
@@ -233,7 +221,9 @@ class _EventCardCover extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1.18,
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppColors.cardRadius),
+        ),
         child: Stack(
           children: [
             Positioned.fill(
@@ -250,7 +240,7 @@ class _EventCardCover extends StatelessWidget {
                       )
                       : DecoratedBox(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF181818),
+                          color: AppColors.cardCoverPlaceholder,
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -292,7 +282,7 @@ class _EventCardCover extends StatelessWidget {
               right: 16,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF25211F),
+                  color: AppColors.cardChipBackground,
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
                     color: AppColors.purple500.withValues(alpha: 0.28),
@@ -326,7 +316,9 @@ class _CompactCover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+      borderRadius: const BorderRadius.vertical(
+        top: Radius.circular(AppColors.cardRadius),
+      ),
       child: AspectRatio(
         aspectRatio: 2.05,
         child: Stack(
@@ -345,7 +337,7 @@ class _CompactCover extends StatelessWidget {
                       )
                       : DecoratedBox(
                         decoration: BoxDecoration(
-                          color: const Color(0xFF181818),
+                          color: AppColors.cardCoverPlaceholder,
                           gradient: LinearGradient(
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

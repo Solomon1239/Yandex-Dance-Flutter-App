@@ -23,6 +23,8 @@ class UserProfile extends Equatable {
     required this.danceStyles,
     required this.onboardingCompleted,
     this.friendIds = const [],
+    this.followersCount = 0,
+    this.followingCount = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -50,6 +52,9 @@ class UserProfile extends Equatable {
   final bool onboardingCompleted;
 
   final List<String> friendIds;
+
+  final int followersCount;
+  final int followingCount;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -87,6 +92,8 @@ class UserProfile extends Equatable {
     List<DanceStyle>? danceStyles,
     bool? onboardingCompleted,
     List<String>? friendIds,
+    int? followersCount,
+    int? followingCount,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -127,6 +134,8 @@ class UserProfile extends Equatable {
       danceStyles: danceStyles ?? this.danceStyles,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       friendIds: friendIds ?? this.friendIds,
+      followersCount: followersCount ?? this.followersCount,
+      followingCount: followingCount ?? this.followingCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -153,6 +162,8 @@ class UserProfile extends Equatable {
     danceStyles,
     onboardingCompleted,
     friendIds,
+    followersCount,
+    followingCount,
     createdAt,
     updatedAt,
   ];

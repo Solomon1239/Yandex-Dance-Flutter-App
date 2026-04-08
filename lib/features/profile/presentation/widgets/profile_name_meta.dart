@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_follow_stats_row.dart';
 
 class ProfileNameMeta extends StatelessWidget {
   const ProfileNameMeta({super.key, required this.profile});
@@ -37,6 +38,11 @@ class ProfileNameMeta extends StatelessWidget {
               ),
             ),
           ],
+          const SizedBox(height: 10),
+          ProfileFollowStatsRow(
+            followersCount: profile.followersCount,
+            followingCount: profile.followingCount,
+          ),
         ],
       ),
     );

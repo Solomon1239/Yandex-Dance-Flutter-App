@@ -23,6 +23,8 @@ class UserProfileModel {
     required this.danceStyles,
     required this.onboardingCompleted,
     this.friendIds = const [],
+    this.followersCount = 0,
+    this.followingCount = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -51,6 +53,9 @@ class UserProfileModel {
 
   final List<String> friendIds;
 
+  final int followersCount;
+  final int followingCount;
+
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -74,9 +79,12 @@ class UserProfileModel {
       introVideoStoragePath: data['introVideoStoragePath'] as String?,
       introVideoThumbStoragePath: data['introVideoThumbStoragePath'] as String?,
       danceStyles: List<String>.from(data['danceStyles'] ?? const []),
-      onboardingCompleted: data['onboardingCompleted'] as bool? ??
+      onboardingCompleted:
+          data['onboardingCompleted'] as bool? ??
           List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
       friendIds: List<String>.from(data['friendIds'] ?? const []),
+      followersCount: (data['followersCount'] as num?)?.toInt() ?? 0,
+      followingCount: (data['followingCount'] as num?)?.toInt() ?? 0,
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
     );
@@ -103,6 +111,8 @@ class UserProfileModel {
       danceStyles: danceStyles.map(DanceStyleX.fromCode).toList(),
       onboardingCompleted: onboardingCompleted,
       friendIds: friendIds,
+      followersCount: followersCount,
+      followingCount: followingCount,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -129,6 +139,8 @@ class UserProfileModel {
       danceStyles: entity.danceStyles.map((e) => e.code).toList(),
       onboardingCompleted: entity.onboardingCompleted,
       friendIds: entity.friendIds,
+      followersCount: entity.followersCount,
+      followingCount: entity.followingCount,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -156,6 +168,8 @@ class UserProfileModel {
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
       'friendIds': friendIds,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -183,6 +197,8 @@ class UserProfileModel {
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
       'friendIds': friendIds,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }
