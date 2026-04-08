@@ -232,10 +232,7 @@ class _EventsPageState extends State<EventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Все мероприятия"),
-        scrolledUnderElevation: 0,
-      ),
+      backgroundColor: AppColors.gray500,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12.0),

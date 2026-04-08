@@ -20,7 +20,9 @@ class UserProfileModel {
     this.introVideoThumbStoragePath,
     required this.danceStyles,
     required this.onboardingCompleted,
-    this.followingIds = const [],
+    this.friendIds = const [],
+    this.followersCount = 0,
+    this.followingCount = 0,
     this.createdAt,
     this.updatedAt,
   });
@@ -44,7 +46,10 @@ class UserProfileModel {
   final List<String> danceStyles;
   final bool onboardingCompleted;
 
-  final List<String> followingIds;
+  final List<String> friendIds;
+
+  final int followersCount;
+  final int followingCount;
 
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -67,9 +72,12 @@ class UserProfileModel {
       introVideoStoragePath: data['introVideoStoragePath'] as String?,
       introVideoThumbStoragePath: data['introVideoThumbStoragePath'] as String?,
       danceStyles: List<String>.from(data['danceStyles'] ?? const []),
-      onboardingCompleted: data['onboardingCompleted'] as bool? ??
+      onboardingCompleted:
+          data['onboardingCompleted'] as bool? ??
           List<String>.from(data['danceStyles'] ?? const []).isNotEmpty,
-      followingIds: List<String>.from(data['followingIds'] ?? data['friendIds'] ?? const []),
+      friendIds: List<String>.from(data['friendIds'] ?? const []),
+      followersCount: (data['followersCount'] as num?)?.toInt() ?? 0,
+      followingCount: (data['followingCount'] as num?)?.toInt() ?? 0,
       createdAt: _dateFromDynamic(data['createdAt']),
       updatedAt: _dateFromDynamic(data['updatedAt']),
     );
@@ -93,7 +101,9 @@ class UserProfileModel {
       introVideoThumbStoragePath: introVideoThumbStoragePath,
       danceStyles: danceStyles.map(DanceStyleX.fromCode).toList(),
       onboardingCompleted: onboardingCompleted,
-      followingIds: followingIds,
+      friendIds: friendIds,
+      followersCount: followersCount,
+      followingCount: followingCount,
       createdAt: createdAt,
       updatedAt: updatedAt,
     );
@@ -117,7 +127,9 @@ class UserProfileModel {
       introVideoThumbStoragePath: entity.introVideoThumbStoragePath,
       danceStyles: entity.danceStyles.map((e) => e.code).toList(),
       onboardingCompleted: entity.onboardingCompleted,
-      followingIds: entity.followingIds,
+      friendIds: entity.friendIds,
+      followersCount: entity.followersCount,
+      followingCount: entity.followingCount,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -142,7 +154,9 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
-      'followingIds': followingIds,
+      'friendIds': friendIds,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'createdAt': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
@@ -167,7 +181,9 @@ class UserProfileModel {
       'introVideoThumbStoragePath': introVideoThumbStoragePath,
       'danceStyles': danceStyles,
       'onboardingCompleted': onboardingCompleted,
-      'followingIds': followingIds,
+      'friendIds': friendIds,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
       'updatedAt': FieldValue.serverTimestamp(),
     };
   }

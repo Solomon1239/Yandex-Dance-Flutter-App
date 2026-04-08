@@ -10,6 +10,10 @@ import 'package:yandex_dance/features/friends/domain/entities/friend_coach.dart'
 import 'package:yandex_dance/features/friends/domain/repositories/friends_repository.dart';
 import 'package:yandex_dance/features/friends/presentation/widgets/friend_coach_avatar.dart';
 import 'package:yandex_dance/features/friends/presentation/widgets/friend_coach_styles_pill.dart';
+import 'package:yandex_dance/features/friends/presentation/widgets/friend_detail_user_sections.dart';
+import 'package:yandex_dance/features/profile/domain/entities/user_profile.dart';
+import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
+import 'package:yandex_dance/features/profile/presentation/widgets/profile_follow_stats_row.dart';
 
 class FriendDetailPage extends StatefulWidget {
   const FriendDetailPage({super.key, required this.coachId});
@@ -22,6 +26,7 @@ class FriendDetailPage extends StatefulWidget {
 
 class _FriendDetailPageState extends State<FriendDetailPage> {
   final FriendsRepository _friendsRepository = sl<FriendsRepository>();
+  final ProfileRepository _profileRepository = sl<ProfileRepository>();
 
   FriendCoach? _coach;
   bool _loading = true;
@@ -156,6 +161,17 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                     color: AppColors.gray100,
                   ),
                 ),
+                const SizedBox(height: 10),
+                StreamBuilder<UserProfile?>(
+                  stream: _profileRepository.watchProfile(widget.coachId),
+                  builder: (context, snapshot) {
+                    final profile = snapshot.data;
+                    return ProfileFollowStatsRow(
+                      followersCount: profile?.followersCount ?? 0,
+                      followingCount: profile?.followingCount ?? 0,
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -181,6 +197,18 @@ class _FriendDetailPageState extends State<FriendDetailPage> {
                 ),
               ),
             ),
+          const SizedBox(height: 28),
+          Divider(
+            color: AppColors.gray300.withValues(alpha: 0.25),
+            height: 1,
+          ),
+          const SizedBox(height: 28),
+          FriendDetailEventsSection(
+            coachId: widget.coachId,
+            coachName: coach.name,
+          ),
+          const SizedBox(height: 28),
+          FriendDetailVideoSection(coachId: widget.coachId),
         ],
       ),
     );

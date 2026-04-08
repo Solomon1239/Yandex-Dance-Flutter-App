@@ -58,10 +58,7 @@ class _FriendsPageState extends State<FriendsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Подписки'),
-        scrolledUnderElevation: 0,
-      ),
+      backgroundColor: AppColors.gray500,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -123,11 +120,12 @@ class _FriendsPageState extends State<FriendsPage>
     }
 
     final query = _searchController.text.trim().toLowerCase();
-    final filtered = state.following.where((user) {
-      if (query.isEmpty) return true;
-      return (user.displayName?.toLowerCase().contains(query) ?? false) ||
-          (user.city?.toLowerCase().contains(query) ?? false);
-    }).toList();
+    final filtered =
+        state.following.where((user) {
+          if (query.isEmpty) return true;
+          return (user.displayName?.toLowerCase().contains(query) ?? false) ||
+              (user.city?.toLowerCase().contains(query) ?? false);
+        }).toList();
 
     if (filtered.isEmpty) {
       return const Center(child: Text('Нет подписок'));
@@ -138,9 +136,10 @@ class _FriendsPageState extends State<FriendsPage>
       separatorBuilder: (_, __) => const SizedBox(height: 20),
       itemBuilder: (context, index) {
         final user = filtered[index];
-        final stylesLabel = user.danceStyles.isEmpty
-            ? ''
-            : user.danceStyles.map((s) => s.title).take(2).join(' · ');
+        final stylesLabel =
+            user.danceStyles.isEmpty
+                ? ''
+                : user.danceStyles.map((s) => s.title).take(2).join(' · ');
 
         return FriendCard(
           image: _avatarProvider(user),
