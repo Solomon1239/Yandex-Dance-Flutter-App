@@ -186,9 +186,8 @@ class _CreateNavButtonState extends State<_CreateNavButton>
   late final Animation<double> _entranceTurn;
   late final AnimationController _pulseController;
   late final Animation<double> _pulseScale;
-  late final AnimationController _shineController;
-  late final Animation<double> _shineOffset;
   late final Animation<double> _glowStrength;
+  late final AnimationController _gradientController;
 
   @override
   void initState() {
@@ -201,9 +200,9 @@ class _CreateNavButtonState extends State<_CreateNavButton>
       vsync: this,
       duration: const Duration(milliseconds: 2200),
     );
-    _shineController = AnimationController(
+    _gradientController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 2400),
     );
 
     final entranceCurve = CurvedAnimation(
@@ -227,9 +226,6 @@ class _CreateNavButtonState extends State<_CreateNavButton>
     _pulseScale = Tween<double>(begin: 1, end: 1.09).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-    _shineOffset = Tween<double>(begin: -50, end: 50).animate(
-      CurvedAnimation(parent: _shineController, curve: Curves.easeInOutCubic),
-    );
     _glowStrength = Tween<double>(begin: 0.24, end: 0.4).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
@@ -237,7 +233,7 @@ class _CreateNavButtonState extends State<_CreateNavButton>
     _entranceController.forward().then((_) {
       if (mounted) {
         _pulseController.repeat(reverse: true);
-        _shineController.repeat();
+        _gradientController.repeat(reverse: true);
       }
     });
   }
@@ -246,7 +242,7 @@ class _CreateNavButtonState extends State<_CreateNavButton>
   void dispose() {
     _entranceController.dispose();
     _pulseController.dispose();
-    _shineController.dispose();
+    _gradientController.dispose();
     super.dispose();
   }
 
@@ -258,102 +254,105 @@ class _CreateNavButtonState extends State<_CreateNavButton>
           animation: Listenable.merge([
             _entranceController,
             _pulseController,
-            _shineController,
+            _gradientController,
           ]),
           builder: (context, child) {
             final entranceDone = _entranceController.isCompleted;
             final scale =
                 entranceDone ? _pulseScale.value : _entranceScale.value;
+            final gradientProgress = Curves.easeInOutSine.transform(
+              _gradientController.value,
+            );
+            final primaryColor =
+                Color.lerp(
+                  AppColors.purple500,
+                  AppColors.pink500,
+                  gradientProgress * 0.55,
+                )!;
+            final secondaryColor =
+                Color.lerp(
+                  AppColors.pink500,
+                  AppColors.purple500,
+                  0.2 + gradientProgress * 0.45,
+                )!;
+            final highlightColor =
+                Color.lerp(
+                  AppColors.pink500,
+                  Colors.white,
+                  0.12 + gradientProgress * 0.1,
+                )!;
+            final buttonGradient = LinearGradient(
+              begin: Alignment(-1 + gradientProgress * 0.9, -1),
+              end: Alignment(1 - gradientProgress * 0.6, 1),
+              colors: [primaryColor, highlightColor, secondaryColor],
+              stops: const [0, 0.52, 1],
+            );
             return Opacity(
               opacity: _entranceOpacity.value,
               child: Transform.translate(
                 offset: Offset(0, entranceDone ? -4 : _entranceSlideY.value),
                 child: Transform.rotate(
                   angle: entranceDone ? 0 : _entranceTurn.value,
-                  child: Transform.scale(scale: scale, child: child),
-                ),
-              ),
-            );
-          },
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.pink500.withValues(
-                        alpha: _glowStrength.value,
-                      ),
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                    ),
-                    BoxShadow(
-                      color: AppColors.purple500.withValues(alpha: 0.2),
-                      blurRadius: 18,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.14),
-                  ),
-                ),
-                child: ClipOval(
-                  child: Stack(
-                    children: [
-                      AppButton(
-                        onTap: widget.onTap,
-                        icon: AppIcons.create,
-                        style: AppButtonStyle(
+                  child: Transform.scale(
+                    scale: scale,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.pink500.withValues(
+                                  alpha: _glowStrength.value,
+                                ),
+                                blurRadius: 30,
+                                spreadRadius: 4,
+                              ),
+                              BoxShadow(
+                                color: AppColors.purple500.withValues(
+                                  alpha: 0.2,
+                                ),
+                                blurRadius: 18,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
                           width: 60,
                           height: 60,
-                          padding: EdgeInsets.zero,
-                          iconSize: 28,
-                          iconColor: AppColors.gray0,
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [AppColors.purple500, AppColors.pink500],
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                            ),
                           ),
-                          border: const AppButtonBorder(borderRadius: 30),
-                        ),
-                      ),
-                      IgnorePointer(
-                        child: Transform.translate(
-                          offset: Offset(_shineOffset.value, 0),
-                          child: Container(
-                            width: 22,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                                colors: [
-                                  Colors.white.withValues(alpha: 0),
-                                  Colors.white.withValues(alpha: 0.42),
-                                  Colors.white.withValues(alpha: 0),
-                                ],
+                          child: ClipOval(
+                            child: AppButton(
+                              onTap: widget.onTap,
+                              icon: AppIcons.create,
+                              style: AppButtonStyle(
+                                width: 60,
+                                height: 60,
+                                padding: EdgeInsets.zero,
+                                iconSize: 28,
+                                iconColor: AppColors.gray0,
+                                gradient: buttonGradient,
+                                border: const AppButtonBorder(borderRadius: 30),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

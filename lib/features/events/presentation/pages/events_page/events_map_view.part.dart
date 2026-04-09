@@ -39,6 +39,7 @@ class _EventsMapViewState extends State<_EventsMapView> {
   var _isProgrammaticZoomToEvent = false;
   var _isLocatingUser = false;
   var _didCenterOnInitialUserLocation = false;
+  var _didRequestInitialUserLocation = false;
 
   @override
   void didUpdateWidget(covariant _EventsMapView oldWidget) {
@@ -93,12 +94,14 @@ class _EventsMapViewState extends State<_EventsMapView> {
                   _mapController = controller;
                   controller.addListener(_onCameraChanged);
                   _upsertEventsSourceAndLayers();
+                  _scheduleInitialUserLocationRequest();
                 },
                 onStyleLoadedCallback: () {
                   _isStyleLoaded = true;
                   _isSourceAndLayersReady = false;
                   _isUserLocationLayerReady = false;
                   _upsertEventsSourceAndLayers();
+                  _scheduleInitialUserLocationRequest();
                 },
                 onUserLocationUpdated: (location) {
                   final nextLocation = location.position;
@@ -601,6 +604,26 @@ class _EventsMapViewState extends State<_EventsMapView> {
 
   Future<void> _locateUser() async {
     return _locateUserInternal();
+  }
+
+  void _scheduleInitialUserLocationRequest() {
+    if (_didRequestInitialUserLocation || !_isStyleLoaded) {
+      return;
+    }
+    final controller = _mapController;
+    if (controller == null) {
+      return;
+    }
+
+    _didRequestInitialUserLocation = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      if (!mounted || _mapController != controller) {
+        _didRequestInitialUserLocation = false;
+        return;
+      }
+      await _locateUserInternal(showErrorMessage: false);
+    });
   }
 
   Future<void> _locateUserInternal({bool showErrorMessage = true}) async {
