@@ -182,9 +182,7 @@ class FriendDetailVideoSection extends StatelessWidget {
             }
 
             final profile = snapshot.data;
-            final hasVideo =
-                profile?.introVideoThumbUrl != null &&
-                profile?.introVideoUrl != null;
+            final hasVideo = profile?.introVideoUrl != null;
 
             if (!hasVideo || profile == null) {
               return Padding(
@@ -205,7 +203,7 @@ class FriendDetailVideoSection extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 children: [
                   _FriendIntroVideoTile(
-                    thumbUrl: profile.introVideoThumbUrl!,
+                    thumbUrl: profile.introVideoThumbUrl,
                     videoUrl: profile.introVideoUrl!,
                   ),
                 ],
@@ -221,7 +219,7 @@ class FriendDetailVideoSection extends StatelessWidget {
 class _FriendIntroVideoTile extends StatelessWidget {
   const _FriendIntroVideoTile({required this.thumbUrl, required this.videoUrl});
 
-  final String thumbUrl;
+  final String? thumbUrl;
   final String videoUrl;
 
   @override
@@ -243,13 +241,16 @@ class _FriendIntroVideoTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
-                imageUrl: thumbUrl,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: AppColors.gray400),
-                errorWidget:
-                    (_, __, ___) => Container(color: AppColors.gray400),
-              ),
+              if (thumbUrl != null && thumbUrl!.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: thumbUrl!,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: AppColors.gray400),
+                  errorWidget:
+                      (_, __, ___) => Container(color: AppColors.gray400),
+                )
+              else
+                Container(color: AppColors.gray400),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

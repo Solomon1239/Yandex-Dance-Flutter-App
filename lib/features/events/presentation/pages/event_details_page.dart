@@ -6,6 +6,7 @@ import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/media/cached_remote_image.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 import 'package:yandex_dance/core/ui/widgets/snackbar/app_snackbar.dart';
@@ -14,6 +15,7 @@ import 'package:yandex_dance/features/events/domain/entities/dance_event.dart';
 import 'package:yandex_dance/features/events/domain/repositories/event_repository.dart';
 import 'package:yandex_dance/features/events/presentation/models/event_preview.dart';
 import 'package:yandex_dance/features/events/presentation/pages/edit_event_screen.dart';
+import 'package:yandex_dance/features/friends/presentation/pages/friend_detail_page.dart';
 import 'package:yandex_dance/features/profile/domain/repositories/profile_repository.dart';
 import 'package:yandex_dance/features/profile/presentation/managers/profile_manager.dart';
 
@@ -33,6 +35,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   final _dateFormat = DateFormat('dd.MM.yyyy, HH:mm');
 
   late final Stream<List<DanceEvent>> _eventsStream;
+  DanceEvent? _eventOverride;
 
   Future<List<_ParticipantViewData>>? _participantsFuture;
   String _participantsKey = '';
@@ -51,6 +54,43 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
       if (event.id == widget.event.id) return event;
     }
     return null;
+  }
+
+  bool _matchesEventOverride(DanceEvent streamEvent, DanceEvent override) {
+    return streamEvent.id == override.id &&
+        streamEvent.title == override.title &&
+        streamEvent.description == override.description &&
+        streamEvent.coverUrl == override.coverUrl &&
+        streamEvent.coverThumbUrl == override.coverThumbUrl &&
+        streamEvent.coverStoragePath == override.coverStoragePath &&
+        streamEvent.coverThumbStoragePath == override.coverThumbStoragePath &&
+        streamEvent.danceStyle == override.danceStyle &&
+        streamEvent.dateTime == override.dateTime &&
+        streamEvent.address == override.address &&
+        streamEvent.latitude == override.latitude &&
+        streamEvent.longitude == override.longitude &&
+        streamEvent.maxParticipants == override.maxParticipants &&
+        streamEvent.ageRestriction == override.ageRestriction;
+  }
+
+  DanceEvent? _resolveVisibleEvent(List<DanceEvent> events) {
+    final streamEvent = _findEventById(events);
+    final override = _eventOverride;
+    if (override == null) {
+      return streamEvent;
+    }
+
+    if (streamEvent != null && _matchesEventOverride(streamEvent, override)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        setState(() {
+          _eventOverride = null;
+        });
+      });
+      return streamEvent;
+    }
+
+    return override;
   }
 
   void _ensureParticipantsFuture(List<String> participantIds) {
@@ -184,7 +224,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
 
     setState(() => _isOwnerActionInProgress = true);
     try {
-      final updated = event.copyWith(
+      var updated = event.copyWith(
         title: payload.title,
         description: payload.description,
         danceStyle: payload.danceStyle,
@@ -196,6 +236,18 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
         ageRestriction: payload.ageRestriction,
       );
       await _eventRepository.updateEvent(updated);
+      if (payload.coverSourcePath != null) {
+        updated = await _eventRepository.uploadCover(
+          eventId: event.id,
+          currentEvent: updated,
+          sourcePath: payload.coverSourcePath!,
+        );
+      }
+      if (mounted) {
+        setState(() {
+          _eventOverride = updated;
+        });
+      }
       if (mounted) AppSnackBar.showSuccess(context, 'Мероприятие обновлено');
     } catch (e) {
       if (mounted) AppSnackBar.showError(context, 'Ошибка сохранения: $e');
@@ -209,7 +261,7 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
     return StreamBuilder<List<DanceEvent>>(
       stream: _eventsStream,
       builder: (context, snapshot) {
-        final event = _findEventById(snapshot.data ?? const []);
+        final event = _resolveVisibleEvent(snapshot.data ?? const []);
         final currentUid = _authRepository.currentUserId;
         final isOwner =
             event != null && currentUid != null && event.isCreator(currentUid);
@@ -385,6 +437,16 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                                           isOwner:
                                               participant.uid ==
                                               event.creatorId,
+                                          onTap: () {
+                                            Navigator.of(context).push<void>(
+                                              MaterialPageRoute<void>(
+                                                builder:
+                                                    (_) => FriendDetailPage(
+                                                      userId: participant.uid,
+                                                    ),
+                                              ),
+                                            );
+                                          },
                                         );
                                       },
                                     );
@@ -543,46 +605,54 @@ class _ParticipantViewData {
 }
 
 class _ParticipantRow extends StatelessWidget {
-  const _ParticipantRow({required this.participant, required this.isOwner});
+  const _ParticipantRow({
+    required this.participant,
+    required this.isOwner,
+    required this.onTap,
+  });
 
   final _ParticipantViewData participant;
   final bool isOwner;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final avatarUrl = participant.avatarUrl?.trim();
     final hasAvatar = avatarUrl != null && avatarUrl.isNotEmpty;
 
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: AppColors.gray400,
-          backgroundImage:
-              hasAvatar ? cachedNetworkImageProviderOrNull(avatarUrl) : null,
-          child:
-              hasAvatar
-                  ? null
-                  : Text(
-                    participant.name.isNotEmpty
-                        ? participant.name.substring(0, 1).toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                      color: AppColors.gray0,
-                      fontWeight: FontWeight.w600,
+    return CustomBounceEffect(
+      onTap: onTap,
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.gray400,
+            backgroundImage:
+                hasAvatar ? cachedNetworkImageProviderOrNull(avatarUrl) : null,
+            child:
+                hasAvatar
+                    ? null
+                    : Text(
+                      participant.name.isNotEmpty
+                          ? participant.name.substring(0, 1).toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: AppColors.gray0,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            isOwner ? '${participant.name} (Организатор)' : participant.name,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyLarge?.copyWith(color: AppColors.gray0),
           ),
-        ),
-      ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isOwner ? '${participant.name} (Организатор)' : participant.name,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: AppColors.gray0),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -704,11 +774,7 @@ class _DetailSkeletonCircle extends StatelessWidget {
 }
 
 class _DetailSkeletonBox extends StatelessWidget {
-  const _DetailSkeletonBox({
-    this.width,
-    this.height = 16,
-    this.radius = 12,
-  });
+  const _DetailSkeletonBox({this.width, this.height = 16, this.radius = 12});
 
   final double? width;
   final double height;

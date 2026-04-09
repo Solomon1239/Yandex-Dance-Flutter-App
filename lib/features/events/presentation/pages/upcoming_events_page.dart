@@ -52,9 +52,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
 
   void _openDancerDetails(String userId) {
     Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(
-        builder: (_) => FriendDetailPage(userId: userId),
-      ),
+      MaterialPageRoute<void>(builder: (_) => FriendDetailPage(userId: userId)),
     );
   }
 
@@ -193,8 +191,10 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                                 ),
                                 styleName: popularDancers[i].stylesLabel,
                                 description: popularDancers[i].description,
-                                onTap: () =>
-                                    _openDancerDetails(popularDancers[i].uid),
+                                onTap:
+                                    () => _openDancerDetails(
+                                      popularDancers[i].uid,
+                                    ),
                               ),
                               if (i != popularDancers.length - 1)
                                 const SizedBox(height: 16),
@@ -253,22 +253,27 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
     }
 
     final items =
-        eventsCountByUserId.entries.map((entry) {
-            final profile = profilesById[entry.key];
-            final styles =
-                profile?.danceStyles.map((style) => style.title).toList() ??
-                const <String>[];
+        eventsCountByUserId.entries
+            .map((entry) {
+              final profile = profilesById[entry.key];
+              if (profile == null) {
+                return null;
+              }
+              final styles =
+                  profile.danceStyles.map((style) => style.title).toList();
 
-            return _PopularDancerItem(
-              uid: entry.key,
-              name: _resolveProfileName(profile, entry.key),
-              avatarUrl: profile?.avatarThumbUrl ?? profile?.avatarUrl,
-              stylesLabel:
-                  styles.isEmpty ? 'Без стиля' : styles.take(2).join(' · '),
-              description: _buildDancerDescription(profile, entry.value),
-              eventsCount: entry.value,
-            );
-          }).toList()
+              return _PopularDancerItem(
+                uid: entry.key,
+                name: _resolveProfileName(profile, entry.key),
+                avatarUrl: profile.avatarThumbUrl ?? profile.avatarUrl,
+                stylesLabel:
+                    styles.isEmpty ? 'Без стиля' : styles.take(2).join(' · '),
+                description: _buildDancerDescription(profile, entry.value),
+                eventsCount: entry.value,
+              );
+            })
+            .nonNulls
+            .toList()
           ..sort((a, b) {
             final eventsComparison = b.eventsCount.compareTo(a.eventsCount);
             if (eventsComparison != 0) {

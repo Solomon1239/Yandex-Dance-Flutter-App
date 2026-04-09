@@ -10,27 +10,42 @@ class VideoOptimizer {
   Future<OptimizedVideoResult> optimizeIntroVideo(String sourcePath) async {
     await _validateVideo(sourcePath);
 
-    final info = await VideoCompress.compressVideo(
-      sourcePath,
-      quality: VideoQuality.MediumQuality,
-      deleteOrigin: false,
-      includeAudio: true,
-    );
+    final originalFile = File(sourcePath);
 
-    final thumb = await VideoCompress.getFileThumbnail(
-      sourcePath,
-      quality: 70,
-      position: -1,
-    );
+    File optimizedVideoFile = originalFile;
+    String contentType = _videoContentType(sourcePath);
 
-    if (info == null || info.file == null) {
-      throw const MediaOptimizationException('Не удалось сжать видео');
+    try {
+      final info = await VideoCompress.compressVideo(
+        sourcePath,
+        quality: VideoQuality.MediumQuality,
+        deleteOrigin: false,
+        includeAudio: true,
+      );
+
+      if (info?.file != null) {
+        optimizedVideoFile = info!.file!;
+        contentType = 'video/mp4';
+      }
+    } catch (_) {
+      optimizedVideoFile = originalFile;
+    }
+
+    File? thumb;
+    try {
+      thumb = await VideoCompress.getFileThumbnail(
+        sourcePath,
+        quality: 70,
+        position: 1000,
+      );
+    } catch (_) {
+      thumb = null;
     }
 
     return OptimizedVideoResult(
-      videoFile: info.file!,
+      videoFile: optimizedVideoFile,
       thumbFile: thumb,
-      contentType: 'video/mp4',
+      contentType: contentType,
     );
   }
 
@@ -44,15 +59,28 @@ class VideoOptimizer {
       );
     }
 
-    final mediaInfo = await VideoCompress.getMediaInfo(sourcePath);
-    if (mediaInfo.duration != null) {
-      final duration = Duration(milliseconds: mediaInfo.duration!.toInt());
-      if (duration > maxDuration) {
-        throw const MediaOptimizationException(
-          'Видео слишком длинное. Максимальная длительность — 5 минут',
-        );
+    try {
+      final mediaInfo = await VideoCompress.getMediaInfo(sourcePath);
+      if (mediaInfo.duration != null) {
+        final duration = Duration(milliseconds: mediaInfo.duration!.toInt());
+        if (duration > maxDuration) {
+          throw const MediaOptimizationException(
+            'Видео слишком длинное. Максимальная длительность — 5 минут',
+          );
+        }
       }
+    } catch (_) {
+      // Некоторые форматы/устройства падают внутри video_compress при чтении
+      // метаданных. В этом случае продолжаем без проверки длительности.
     }
+  }
+
+  String _videoContentType(String sourcePath) {
+    final lower = sourcePath.toLowerCase();
+    if (lower.endsWith('.mov')) return 'video/quicktime';
+    if (lower.endsWith('.m4v')) return 'video/x-m4v';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    return 'video/mp4';
   }
 
   Future<void> clearCache() async {
@@ -68,6 +96,6 @@ class OptimizedVideoResult {
   });
 
   final File videoFile;
-  final File thumbFile;
+  final File? thumbFile;
   final String contentType;
 }

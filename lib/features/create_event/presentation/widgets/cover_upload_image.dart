@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +11,16 @@ import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 
 class CoverUploadWidget extends StatefulWidget {
-  const CoverUploadWidget({super.key, this.onChanged, this.initialImagePath});
+  const CoverUploadWidget({
+    super.key,
+    this.onChanged,
+    this.initialImagePath,
+    this.initialNetworkImageUrl,
+  });
 
   final Function(File)? onChanged;
   final String? initialImagePath;
+  final String? initialNetworkImageUrl;
 
   @override
   State<CoverUploadWidget> createState() => _CoverUploadWidgetState();
@@ -52,28 +59,34 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
       final source = await showCupertinoModalPopup<ImageSource>(
         context: context,
         builder:
-            (_) => CupertinoActionSheet(
+            (dialogContext) => CupertinoActionSheet(
               title: const Text('Выберите действие'),
               actions: [
                 CupertinoActionSheetAction(
                   child: const Text('Выбрать из галереи'),
                   onPressed:
-                      () => Navigator.of(context).pop(ImageSource.gallery),
+                      () =>
+                          Navigator.of(dialogContext).pop(ImageSource.gallery),
                 ),
                 CupertinoActionSheetAction(
                   child: const Text('Сделать фото'),
                   onPressed:
-                      () => Navigator.of(context).pop(ImageSource.camera),
+                      () => Navigator.of(dialogContext).pop(ImageSource.camera),
                 ),
               ],
               cancelButton: CupertinoActionSheetAction(
                 child: const Text('Отмена'),
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => Navigator.of(dialogContext).pop(),
               ),
             ),
       );
       if (source != null) {
-        return await picker.pickImage(source: source);
+        return await picker.pickImage(
+          source: source,
+          imageQuality: 90,
+          maxWidth: 2400,
+          maxHeight: 2400,
+        );
       }
     } else {
       final source = await showDialog<ImageSource>(
@@ -105,7 +118,12 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
             ),
       );
       if (source != null) {
-        return await picker.pickImage(source: source);
+        return await picker.pickImage(
+          source: source,
+          imageQuality: 90,
+          maxWidth: 2400,
+          maxHeight: 2400,
+        );
       }
     }
     return null;
@@ -113,10 +131,15 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final hasImage =
+        selectedImage != null ||
+        (widget.initialNetworkImageUrl != null &&
+            widget.initialNetworkImageUrl!.isNotEmpty);
+
     return CustomBounceEffect(
       onTap: pickImage,
       child:
-          selectedImage == null
+          !hasImage
               ? DottedBorder(
                 childOnTop: true,
                 options: RoundedRectDottedBorderOptions(
@@ -169,12 +192,38 @@ class _CoverUploadWidgetState extends State<CoverUploadWidget> {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.file(
-                        selectedImage!,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
+                      if (selectedImage != null)
+                        Image.file(
+                          selectedImage!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                        )
+                      else
+                        Image.network(
+                          widget.initialNetworkImageUrl!,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder:
+                              (_, __, ___) =>
+                                  Container(color: AppColors.gray400),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: AppColors.gray400,
+                              alignment: Alignment.center,
+                              child: const SizedBox(
+                                width: 28,
+                                height: 28,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: AppColors.gray0,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       Positioned(
                         bottom: 12,
                         right: 12,

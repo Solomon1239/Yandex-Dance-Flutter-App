@@ -78,6 +78,10 @@ class _EditProfilePageState extends State<EditProfilePage>
         _selectedStyles = List<DanceStyle>.from(profile.danceStyles);
       });
     }
+
+    if (state.successMessage == 'Профиль сохранён' && !state.isSaving) {
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -223,7 +227,10 @@ class _EditProfilePageState extends State<EditProfilePage>
 
                     AvatarPicker(
                       onTap: _manager.pickAndUploadAvatar,
-                      networkImageUrl: profile.avatarThumbUrl,
+                      file: state.localAvatarFile,
+                      networkImageUrl:
+                          profile.avatarThumbUrl ?? profile.avatarUrl,
+                      isLoading: state.isUploadingAvatar,
                     ),
 
                     const SizedBox(height: 24),

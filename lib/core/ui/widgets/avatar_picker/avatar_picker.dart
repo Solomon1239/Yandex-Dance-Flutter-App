@@ -12,6 +12,7 @@ class AvatarPicker extends StatelessWidget {
     required this.onTap,
     this.file,
     this.networkImageUrl,
+    this.isLoading = false,
     this.radius = 56,
     this.label = 'Загрузить фото',
   });
@@ -19,6 +20,7 @@ class AvatarPicker extends StatelessWidget {
   final VoidCallback onTap;
   final File? file;
   final String? networkImageUrl;
+  final bool isLoading;
   final double radius;
   final String label;
 
@@ -36,7 +38,7 @@ class AvatarPicker extends StatelessWidget {
       children: [
         Center(
           child: CustomBounceEffect(
-            onTap: onTap,
+            onTap: isLoading ? () {} : onTap,
             child: Stack(
               children: [
                 CircleAvatar(
@@ -71,13 +73,32 @@ class AvatarPicker extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.black.withValues(alpha: 0.42),
+                      ),
+                      child: Center(
+                        child: SizedBox(
+                          width: radius * 0.62,
+                          height: radius * 0.62,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 3,
+                            color: AppColors.gray0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
         ),
         const SizedBox(height: 8),
         Text(
-          label,
+          isLoading ? 'Загружаем фото...' : label,
           textAlign: TextAlign.center,
           style: AppTextTheme.body2Regular14pt.copyWith(
             color: AppColors.gray300,

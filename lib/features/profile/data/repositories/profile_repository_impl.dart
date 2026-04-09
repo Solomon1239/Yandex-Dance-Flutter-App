@@ -1,5 +1,7 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/errors/app_exception.dart';
+import 'package:yandex_dance/core/errors/media_optimization_exception.dart';
 import 'package:yandex_dance/core/services/media/image_optimizer.dart';
 import 'package:yandex_dance/core/services/media/video_optimizer.dart';
 import 'package:yandex_dance/core/services/storage/storage_service.dart';
@@ -173,11 +175,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
         contentType: optimized.contentType,
       );
 
-      final uploadedThumb = await _storageService.uploadFile(
-        storagePath: thumbPath,
-        file: optimized.thumbFile,
-        contentType: 'image/jpeg',
-      );
+      UploadedFileData? uploadedThumb;
+      if (optimized.thumbFile != null) {
+        uploadedThumb = await _storageService.uploadFile(
+          storagePath: thumbPath,
+          file: optimized.thumbFile!,
+          contentType: 'image/jpeg',
+        );
+      }
 
       await _storageService.deleteIfExists(
         currentProfile.introVideoStoragePath,
@@ -188,15 +193,25 @@ class ProfileRepositoryImpl implements ProfileRepository {
 
       final updated = currentProfile.copyWith(
         introVideoUrl: Optional(uploadedVideo.downloadUrl),
-        introVideoThumbUrl: Optional(uploadedThumb.downloadUrl),
+        introVideoThumbUrl: Optional(uploadedThumb?.downloadUrl),
         introVideoStoragePath: Optional(uploadedVideo.storagePath),
-        introVideoThumbStoragePath: Optional(uploadedThumb.storagePath),
+        introVideoThumbStoragePath: Optional(uploadedThumb?.storagePath),
       );
 
       await saveProfile(updated);
       return updated;
-    } catch (_) {
-      throw const AppException.unknown('Не удалось загрузить видео');
+    } on MediaOptimizationException catch (e) {
+      throw AppException.unknown(e.message);
+    } on AppException {
+      rethrow;
+    } on FirebaseException catch (e) {
+      final message = e.message?.trim();
+      if (message == null || message.isEmpty) {
+        throw AppException.unknown('Firebase ошибка: ${e.code}');
+      }
+      throw AppException.unknown('Firebase ошибка (${e.code}): $message');
+    } catch (e) {
+      throw AppException.unknown('Не удалось загрузить видео: $e');
     } finally {
       // чистим временные файлы оптимизатора в любом случае
       await _videoOptimizer.clearCache();
@@ -230,10 +245,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
-  Future<void> follow({
-    required String uid,
-    required String targetUid,
-  }) async {
+  Future<void> follow({required String uid, required String targetUid}) async {
     await _remote.addFollowing(uid: uid, targetUid: targetUid);
   }
 

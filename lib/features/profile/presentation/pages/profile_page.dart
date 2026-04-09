@@ -140,8 +140,7 @@ class _ProfilePageState extends State<ProfilePage>
                           );
                           Navigator.of(context).push<void>(
                             MaterialPageRoute<void>(
-                              builder:
-                                  (_) => EventDetailsPage(event: preview),
+                              builder: (_) => EventDetailsPage(event: preview),
                             ),
                           );
                         },
@@ -149,6 +148,7 @@ class _ProfilePageState extends State<ProfilePage>
                       const SizedBox(height: 24),
                       ProfileVideosSection(
                         profile: profile,
+                        isUploadingVideo: state.isUploadingVideo,
                         onUpload: _manager.pickAndUploadIntroVideo,
                         onDelete: _manager.deleteIntroVideo,
                       ),

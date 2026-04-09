@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
@@ -34,6 +36,7 @@ class _FriendsPageState extends State<FriendsPage>
   late final FriendsManager _manager;
   late final TextEditingController _searchController;
   final FocusNode _searchFocusNode = FocusNode();
+  Timer? _searchDebounce;
   bool _touched = false;
 
   /// `null` — выбрано «Все».
@@ -56,9 +59,26 @@ class _FriendsPageState extends State<FriendsPage>
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() => _touched = true);
+
+    _searchDebounce?.cancel();
+
+    final query = value.trim();
+    if (query.isEmpty) {
+      _manager.searchUsers('');
+      return;
+    }
+
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () {
+      _manager.searchUsers(query);
+    });
   }
 
   @override
@@ -78,7 +98,7 @@ class _FriendsPageState extends State<FriendsPage>
                 contoller: _searchController,
                 touched: _touched,
                 focusNode: _searchFocusNode,
-                onChanged: (_) => setState(() => _touched = true),
+                onChanged: _onSearchChanged,
                 onFocusChange: () => setState(() => _touched = true),
                 onUnfocus: () => setState(() => _touched = true),
               ),
@@ -140,6 +160,9 @@ class _FriendsPageState extends State<FriendsPage>
   }
 
   Widget _buildBody(FriendsState state) {
+    final query = _searchController.text.trim().toLowerCase();
+    final isSearching = query.isNotEmpty;
+
     if (state.status == FriendsStatus.loading) {
       return const Center(
         child: CircularProgressIndicator(color: AppColors.purple500),
@@ -164,10 +187,8 @@ class _FriendsPageState extends State<FriendsPage>
       );
     }
 
-    final query = _searchController.text.trim().toLowerCase();
-
     final filtered =
-        state.following.where((user) {
+        (isSearching ? state.searchResults : state.following).where((user) {
           if (_selectedStyle != null) {
             if (!user.danceStyles.contains(_selectedStyle!)) {
               return false;
@@ -175,11 +196,20 @@ class _FriendsPageState extends State<FriendsPage>
           }
           if (query.isEmpty) return true;
           return (user.displayName?.toLowerCase().contains(query) ?? false) ||
-              (user.city?.toLowerCase().contains(query) ?? false);
+              (user.city?.toLowerCase().contains(query) ?? false) ||
+              (user.email?.toLowerCase().contains(query) ?? false);
         }).toList();
 
+    if (isSearching && state.searchLoading && filtered.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.purple500),
+      );
+    }
+
     if (filtered.isEmpty) {
-      return const Center(child: Text('Нет подписок'));
+      return Center(
+        child: Text(isSearching ? 'Ничего не найдено' : 'Нет подписок'),
+      );
     }
 
     return ListView.separated(

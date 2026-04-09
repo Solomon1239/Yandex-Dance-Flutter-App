@@ -7,18 +7,21 @@ enum ProfileStatus { loading, ready, error }
 class ProfileState extends Equatable {
   const ProfileState({
     this.status = ProfileStatus.loading,
+    this.isUploadingVideo = false,
     this.profile,
     this.events = const [],
     this.errorMessage,
   });
 
   final ProfileStatus status;
+  final bool isUploadingVideo;
   final UserProfile? profile;
   final List<DanceEvent> events;
   final String? errorMessage;
 
   ProfileState copyWith({
     ProfileStatus? status,
+    bool? isUploadingVideo,
     UserProfile? profile,
     List<DanceEvent>? events,
     String? errorMessage,
@@ -26,6 +29,7 @@ class ProfileState extends Equatable {
   }) {
     return ProfileState(
       status: status ?? this.status,
+      isUploadingVideo: isUploadingVideo ?? this.isUploadingVideo,
       profile: profile ?? this.profile,
       events: events ?? this.events,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
@@ -33,5 +37,11 @@ class ProfileState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, profile, events, errorMessage];
+  List<Object?> get props => [
+    status,
+    isUploadingVideo,
+    profile,
+    events,
+    errorMessage,
+  ];
 }

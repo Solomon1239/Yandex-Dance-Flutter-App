@@ -11,18 +11,19 @@ class ProfileVideosSection extends StatelessWidget {
   const ProfileVideosSection({
     super.key,
     required this.profile,
+    required this.isUploadingVideo,
     required this.onUpload,
     required this.onDelete,
   });
 
   final UserProfile profile;
+  final bool isUploadingVideo;
   final Future<void> Function() onUpload;
   final Future<void> Function() onDelete;
 
   @override
   Widget build(BuildContext context) {
-    final hasVideo =
-        profile.introVideoThumbUrl != null && profile.introVideoUrl != null;
+    final hasVideo = profile.introVideoUrl != null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -44,7 +45,7 @@ class ProfileVideosSection extends StatelessWidget {
                   child: Stack(
                     children: [
                       _VideoTile(
-                        thumbUrl: profile.introVideoThumbUrl!,
+                        thumbUrl: profile.introVideoThumbUrl,
                         videoUrl: profile.introVideoUrl!,
                       ),
                       Positioned(
@@ -76,7 +77,7 @@ class ProfileVideosSection extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
               ],
-              _UploadVideoTile(onTap: onUpload),
+              _UploadVideoTile(onTap: onUpload, isUploading: isUploadingVideo),
             ],
           ),
         ),
@@ -88,7 +89,7 @@ class ProfileVideosSection extends StatelessWidget {
 class _VideoTile extends StatelessWidget {
   const _VideoTile({required this.thumbUrl, required this.videoUrl});
 
-  final String thumbUrl;
+  final String? thumbUrl;
   final String videoUrl;
 
   @override
@@ -110,13 +111,16 @@ class _VideoTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              CachedNetworkImage(
-                imageUrl: thumbUrl,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(color: AppColors.gray400),
-                errorWidget:
-                    (_, __, ___) => Container(color: AppColors.gray400),
-              ),
+              if (thumbUrl != null && thumbUrl!.isNotEmpty)
+                CachedNetworkImage(
+                  imageUrl: thumbUrl!,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: AppColors.gray400),
+                  errorWidget:
+                      (_, __, ___) => Container(color: AppColors.gray400),
+                )
+              else
+                Container(color: AppColors.gray400),
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -161,9 +165,10 @@ class _VideoTile extends StatelessWidget {
 }
 
 class _UploadVideoTile extends StatelessWidget {
-  const _UploadVideoTile({required this.onTap});
+  const _UploadVideoTile({required this.onTap, required this.isUploading});
 
   final Future<void> Function() onTap;
+  final bool isUploading;
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +195,7 @@ class _UploadVideoTile extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'Загрузить',
+            isUploading ? 'Загружаем...' : 'Загрузить',
             style: AppTextTheme.body2Regular14pt.copyWith(
               color: AppColors.gray100,
             ),

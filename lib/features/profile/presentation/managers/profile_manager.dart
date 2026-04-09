@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:yandex_dance/core/errors/app_exception.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
@@ -47,13 +48,15 @@ class ProfileManager extends StateManager<ProfileState> {
     }
 
     _profileSubscription?.cancel();
-    _profileSubscription = _profileRepository.watchProfile(uid).listen(
-      _onProfileChanged,
-      onError: (Object e, StackTrace st) {
-        addError(e, st, 'profile.watchProfile');
-      },
-      cancelOnError: false,
-    );
+    _profileSubscription = _profileRepository
+        .watchProfile(uid)
+        .listen(
+          _onProfileChanged,
+          onError: (Object e, StackTrace st) {
+            addError(e, st, 'profile.watchProfile');
+          },
+          cancelOnError: false,
+        );
 
     _bindUserEventsStream(uid);
   }
@@ -61,29 +64,32 @@ class ProfileManager extends StateManager<ProfileState> {
   void _bindUserEventsStream(String uid) {
     _eventsSubscription?.cancel();
     _eventsStreamUid = uid;
-    _eventsSubscription = _eventRepository.watchUserEvents(uid).listen(
-      _onEventsChanged,
-      onError: (Object e, StackTrace st) {
-        addError(e, st, 'profile.watchUserEvents');
-        debugPrint('profile.watchUserEvents error: $e');
-        // Подписка могла умереть; переподключаемся (индекс, сеть).
-        Future<void>.delayed(const Duration(seconds: 2), () {
-          final current = _authRepository.currentUserId;
-          if (current != null && current == _eventsStreamUid) {
-            _bindUserEventsStream(current);
-          }
-        });
-      },
-      cancelOnError: false,
-    );
+    _eventsSubscription = _eventRepository
+        .watchUserEvents(uid)
+        .listen(
+          _onEventsChanged,
+          onError: (Object e, StackTrace st) {
+            addError(e, st, 'profile.watchUserEvents');
+            debugPrint('profile.watchUserEvents error: $e');
+            // Подписка могла умереть; переподключаемся (индекс, сеть).
+            Future<void>.delayed(const Duration(seconds: 2), () {
+              final current = _authRepository.currentUserId;
+              if (current != null && current == _eventsStreamUid) {
+                _bindUserEventsStream(current);
+              }
+            });
+          },
+          cancelOnError: false,
+        );
   }
 
   /// После успешной отписки на экране мероприятия — убрать карточку сразу,
   /// не дожидаясь снимка Firestore (и если стрим временно не обновился).
   void removeUserEventFromList(String eventId) {
     handle((emit) async {
-      final next =
-          state.events.where((e) => e.id != eventId).toList(growable: false);
+      final next = state.events
+          .where((e) => e.id != eventId)
+          .toList(growable: false);
       if (next.length == state.events.length) return;
       emit(state.copyWith(events: next));
     }, identifier: 'profile.removeUserEventFromList');
@@ -104,6 +110,7 @@ class ProfileManager extends StateManager<ProfileState> {
       emit(
         state.copyWith(
           status: ProfileStatus.ready,
+          isUploadingVideo: false,
           profile: profile,
           clearError: true,
         ),
@@ -123,11 +130,14 @@ class ProfileManager extends StateManager<ProfileState> {
       final current = state.profile;
       if (uid == null || current == null) return;
 
-      emit(state.copyWith(clearError: true));
+      emit(state.copyWith(isUploadingVideo: true, clearError: true));
 
       try {
         final file = await _mediaPickerService.pickVideoFromGallery();
-        if (file == null) return;
+        if (file == null) {
+          emit(state.copyWith(isUploadingVideo: false));
+          return;
+        }
 
         await _profileRepository.uploadIntroVideo(
           uid: uid,
@@ -136,10 +146,27 @@ class ProfileManager extends StateManager<ProfileState> {
         );
       } on AppException catch (e, stackTrace) {
         addError(e, stackTrace, 'profile.pickAndUploadIntroVideo');
-        emit(state.copyWith(errorMessage: e.message));
+        emit(state.copyWith(isUploadingVideo: false, errorMessage: e.message));
+      } on FirebaseException catch (e, stackTrace) {
+        addError(e, stackTrace, 'profile.pickAndUploadIntroVideo');
+        final message = e.message?.trim();
+        emit(
+          state.copyWith(
+            isUploadingVideo: false,
+            errorMessage:
+                message == null || message.isEmpty
+                    ? 'Firebase ошибка (${e.code})'
+                    : 'Firebase ошибка (${e.code}): $message',
+          ),
+        );
       } catch (e, stackTrace) {
         addError(e, stackTrace, 'profile.pickAndUploadIntroVideo');
-        emit(state.copyWith(errorMessage: 'Не удалось загрузить видео'));
+        emit(
+          state.copyWith(
+            isUploadingVideo: false,
+            errorMessage: 'Не удалось загрузить видео: $e',
+          ),
+        );
       }
     }, identifier: 'profile.pickAndUploadIntroVideo');
   }

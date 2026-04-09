@@ -55,9 +55,7 @@ class ProfileRemoteDataSource {
         rethrow;
       }
       try {
-        snapshot = await _doc(uid).get(
-          const GetOptions(source: Source.cache),
-        );
+        snapshot = await _doc(uid).get(const GetOptions(source: Source.cache));
       } catch (_) {
         return null;
       }
@@ -114,10 +112,11 @@ class ProfileRemoteDataSource {
   }
 
   Future<List<UserProfileModel>> getFollowers(String uid) async {
-    final snapshot = await _firestore
-        .collection('users')
-        .where('followingIds', arrayContains: uid)
-        .get();
+    final snapshot =
+        await _firestore
+            .collection('users')
+            .where('followingIds', arrayContains: uid)
+            .get();
     return snapshot.docs.map(UserProfileModel.fromDoc).toList();
   }
 
@@ -135,9 +134,12 @@ class ProfileRemoteDataSource {
     final snapshot = await _firestore.collection('users').get();
     return snapshot.docs
         .map(UserProfileModel.fromDoc)
-        .where((m) =>
-            (m.displayName?.toLowerCase().contains(lower) ?? false) ||
-            (m.email?.toLowerCase().contains(lower) ?? false))
+        .where(
+          (m) =>
+              (m.displayName?.toLowerCase().contains(lower) ?? false) ||
+              (m.email?.toLowerCase().contains(lower) ?? false) ||
+              (m.city?.toLowerCase().contains(lower) ?? false),
+        )
         .toList();
   }
 
@@ -151,10 +153,11 @@ class ProfileRemoteDataSource {
     }
 
     for (final batch in batches) {
-      final snapshot = await _firestore
-          .collection('users')
-          .where('uid', whereIn: batch)
-          .get();
+      final snapshot =
+          await _firestore
+              .collection('users')
+              .where('uid', whereIn: batch)
+              .get();
 
       for (final doc in snapshot.docs) {
         results.add(UserProfileModel.fromDoc(doc));

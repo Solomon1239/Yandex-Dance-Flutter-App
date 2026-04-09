@@ -78,9 +78,9 @@
 			</dict>
 		</array>
 		<key>UIStatusBarHidden</key>
-		<true/>
-		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<true/>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Нужен доступ к геопозиции, чтобы показать ваше местоположение на карте.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/errors/app_exception.dart';
 import 'package:yandex_dance/core/services/media/media_picker_service.dart';
@@ -118,27 +120,45 @@ class EditProfileManager extends StateManager<EditProfileState> {
           return;
         }
 
+        final localAvatarFile = File(file.path);
+        emit(
+          state.copyWith(
+            isUploadingAvatar: true,
+            localAvatarFile: localAvatarFile,
+            clearError: true,
+            clearSuccess: true,
+          ),
+        );
+
         final updated = await _profileRepository.uploadAvatar(
           uid: uid,
           currentProfile: current,
-          sourcePath: file.path,
+          sourcePath: localAvatarFile.path,
         );
 
         emit(
           state.copyWith(
             isUploadingAvatar: false,
+            clearLocalAvatarFile: true,
             profile: updated,
             successMessage: 'Аватар обновлён',
           ),
         );
       } on AppException catch (e, stackTrace) {
         addError(e, stackTrace, 'editProfile.pickAndUploadAvatar');
-        emit(state.copyWith(isUploadingAvatar: false, errorMessage: e.message));
+        emit(
+          state.copyWith(
+            isUploadingAvatar: false,
+            clearLocalAvatarFile: true,
+            errorMessage: e.message,
+          ),
+        );
       } catch (e, stackTrace) {
         addError(e, stackTrace, 'editProfile.pickAndUploadAvatar');
         emit(
           state.copyWith(
             isUploadingAvatar: false,
+            clearLocalAvatarFile: true,
             errorMessage: 'Не удалось загрузить аватар',
           ),
         );

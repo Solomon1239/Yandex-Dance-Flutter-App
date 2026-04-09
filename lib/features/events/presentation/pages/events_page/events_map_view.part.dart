@@ -38,6 +38,7 @@ class _EventsMapViewState extends State<_EventsMapView> {
   var _plateOffsetUpdatePending = false;
   var _isProgrammaticZoomToEvent = false;
   var _isLocatingUser = false;
+  var _didCenterOnInitialUserLocation = false;
 
   @override
   void didUpdateWidget(covariant _EventsMapView oldWidget) {
@@ -104,6 +105,16 @@ class _EventsMapViewState extends State<_EventsMapView> {
                   if (_userLocation == nextLocation) return;
                   _userLocation = nextLocation;
                   _upsertUserLocationLayer();
+                  if (!_didCenterOnInitialUserLocation) {
+                    _didCenterOnInitialUserLocation = true;
+                    final controller = _mapController;
+                    if (controller != null) {
+                      controller.animateCamera(
+                        CameraUpdate.newLatLngZoom(nextLocation, 15.5),
+                        duration: const Duration(milliseconds: 550),
+                      );
+                    }
+                  }
                 },
                 onCameraIdle: _schedulePlateOffsetUpdate,
                 onMapClick: (point, __) {
@@ -589,6 +600,10 @@ class _EventsMapViewState extends State<_EventsMapView> {
   }
 
   Future<void> _locateUser() async {
+    return _locateUserInternal();
+  }
+
+  Future<void> _locateUserInternal({bool showErrorMessage = true}) async {
     if (_isLocatingUser) return;
     _isLocatingUser = true;
     try {
@@ -599,7 +614,9 @@ class _EventsMapViewState extends State<_EventsMapView> {
 
       final location = await controller.requestMyLocationLatLng();
       if (location == null) {
-        _showMapMessage('Не удалось получить геолокацию');
+        if (showErrorMessage) {
+          _showMapMessage('Не удалось получить геолокацию');
+        }
         return;
       }
       _userLocation = location;
@@ -610,7 +627,9 @@ class _EventsMapViewState extends State<_EventsMapView> {
         duration: const Duration(milliseconds: 550),
       );
     } catch (_) {
-      _showMapMessage('Не удалось определить текущее местоположение');
+      if (showErrorMessage) {
+        _showMapMessage('Не удалось определить текущее местоположение');
+      }
     } finally {
       _isLocatingUser = false;
     }

@@ -111,16 +111,19 @@ class EventRepositoryImpl implements EventRepository {
             file: optimized.videoFile,
             contentType: optimized.contentType,
           );
-          final uploadedThumb = await _storageService.uploadFile(
-            storagePath: thumbPath,
-            file: optimized.thumbFile,
-            contentType: 'image/jpeg',
-          );
+          UploadedFileData? uploadedThumb;
+          if (optimized.thumbFile != null) {
+            uploadedThumb = await _storageService.uploadFile(
+              storagePath: thumbPath,
+              file: optimized.thumbFile!,
+              contentType: 'image/jpeg',
+            );
+          }
 
           promoVideoUrl = uploadedVideo.downloadUrl;
-          promoVideoThumbUrl = uploadedThumb.downloadUrl;
+          promoVideoThumbUrl = uploadedThumb?.downloadUrl;
           promoVideoStoragePath = uploadedVideo.storagePath;
-          promoVideoThumbStoragePath = uploadedThumb.storagePath;
+          promoVideoThumbStoragePath = uploadedThumb?.storagePath;
         } catch (_) {
           // Если нет доступа к Storage, не срываем создание события в Firestore.
         } finally {
@@ -220,6 +223,7 @@ class EventRepositoryImpl implements EventRepository {
     required String sourcePath,
   }) async {
     try {
+      debugPrint('uploadCover start eventId=$eventId sourcePath=$sourcePath');
       final uploaded = await _uploadCoverWithFallback(
         sourcePath: sourcePath,
         folderPath: 'event_covers/${currentEvent.creatorId}/$eventId',
@@ -236,9 +240,22 @@ class EventRepositoryImpl implements EventRepository {
       );
 
       await updateEvent(updated);
+      debugPrint(
+        'uploadCover success eventId=$eventId coverUrl=${updated.coverUrl}',
+      );
       return updated;
-    } catch (_) {
-      throw const AppException.unknown('Не удалось загрузить обложку');
+    } on AppException {
+      rethrow;
+    } on FirebaseException catch (e) {
+      final message = e.message?.trim();
+      if (message == null || message.isEmpty) {
+        throw AppException.unknown('Firebase ошибка: ${e.code}');
+      }
+      throw AppException.unknown('Firebase ошибка (${e.code}): $message');
+    } on MediaOptimizationException catch (e) {
+      throw AppException.unknown(e.message);
+    } catch (e) {
+      throw AppException.unknown('Не удалось загрузить обложку: $e');
     }
   }
 
@@ -261,11 +278,14 @@ class EventRepositoryImpl implements EventRepository {
         file: optimized.videoFile,
         contentType: optimized.contentType,
       );
-      final uploadedThumb = await _storageService.uploadFile(
-        storagePath: thumbPath,
-        file: optimized.thumbFile,
-        contentType: 'image/jpeg',
-      );
+      UploadedFileData? uploadedThumb;
+      if (optimized.thumbFile != null) {
+        uploadedThumb = await _storageService.uploadFile(
+          storagePath: thumbPath,
+          file: optimized.thumbFile!,
+          contentType: 'image/jpeg',
+        );
+      }
 
       await _storageService.deleteIfExists(currentEvent.promoVideoStoragePath);
       await _storageService.deleteIfExists(
@@ -274,9 +294,9 @@ class EventRepositoryImpl implements EventRepository {
 
       final updated = currentEvent.copyWith(
         promoVideoUrl: uploadedVideo.downloadUrl,
-        promoVideoThumbUrl: uploadedThumb.downloadUrl,
+        promoVideoThumbUrl: uploadedThumb?.downloadUrl,
         promoVideoStoragePath: uploadedVideo.storagePath,
-        promoVideoThumbStoragePath: uploadedThumb.storagePath,
+        promoVideoThumbStoragePath: uploadedThumb?.storagePath,
       );
 
       await updateEvent(updated);

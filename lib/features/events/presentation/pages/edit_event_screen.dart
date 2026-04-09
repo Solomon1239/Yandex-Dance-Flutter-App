@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
@@ -13,6 +15,7 @@ import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 import 'package:yandex_dance/core/ui/widgets/snackbar/app_snackbar.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/age_restriction_field.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/create_event_button.dart';
+import 'package:yandex_dance/features/create_event/presentation/widgets/cover_upload_image.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/dance_style_dropdown.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/date_time_picker_row.dart';
 import 'package:yandex_dance/features/create_event/presentation/widgets/event_addres_field.dart';
@@ -32,6 +35,7 @@ class EditEventResult {
     required this.longitude,
     required this.maxParticipants,
     required this.ageRestriction,
+    this.coverSourcePath,
   });
 
   final String title;
@@ -43,6 +47,7 @@ class EditEventResult {
   final double? longitude;
   final int maxParticipants;
   final String ageRestriction;
+  final String? coverSourcePath;
 }
 
 class EditEventScreen extends StatefulWidget {
@@ -80,6 +85,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
   late DateTime _selectedDateTime;
   late String _selectedAgeRestriction;
   AddressSuggestion? _selectedAddressSuggestion;
+  File? _selectedCoverFile;
 
   @override
   void initState() {
@@ -212,7 +218,9 @@ class _EditEventScreenState extends State<EditEventScreen> {
       isValid = false;
     }
 
-    final maxParticipants = int.tryParse(_maxParticipantsController.text.trim());
+    final maxParticipants = int.tryParse(
+      _maxParticipantsController.text.trim(),
+    );
     if (maxParticipants != null &&
         maxParticipants < widget.event.currentParticipants) {
       AppSnackBar.showError(
@@ -243,12 +251,12 @@ class _EditEventScreenState extends State<EditEventScreen> {
         danceStyle: _selectedDanceStyle,
         dateTime: _selectedDateTime,
         address: _addressController.text.trim(),
-        latitude:
-            _selectedAddressSuggestion?.latitude ?? widget.event.latitude,
+        latitude: _selectedAddressSuggestion?.latitude ?? widget.event.latitude,
         longitude:
             _selectedAddressSuggestion?.longitude ?? widget.event.longitude,
         maxParticipants: int.parse(_maxParticipantsController.text.trim()),
         ageRestriction: _selectedAgeRestriction,
+        coverSourcePath: _selectedCoverFile?.path,
       ),
     );
   }
@@ -287,6 +295,14 @@ class _EditEventScreenState extends State<EditEventScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const SizedBox(height: 14),
+            CoverUploadWidget(
+              initialNetworkImageUrl:
+                  widget.event.coverThumbUrl ?? widget.event.coverUrl,
+              onChanged: (file) {
+                _selectedCoverFile = file;
+              },
+            ),
             const SizedBox(height: 14),
             EventTitleField(
               controller: _titleController,
@@ -372,8 +388,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               touched: _maxParticipantsTouched,
               state: _maxParticipantsState,
               validator: _maxParticipantsValidator,
-              onChanged:
-                  (_) => setState(() => _maxParticipantsTouched = true),
+              onChanged: (_) => setState(() => _maxParticipantsTouched = true),
               onStateChange: (value) {
                 setState(() => _maxParticipantsState = value);
               },
@@ -386,10 +401,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
               },
             ),
             const SizedBox(height: 20),
-            CreateEventButton(
-              onPressed: _submit,
-              text: 'Сохранить изменения',
-            ),
+            CreateEventButton(onPressed: _submit, text: 'Сохранить изменения'),
             const SizedBox(height: 20),
           ],
         ),
