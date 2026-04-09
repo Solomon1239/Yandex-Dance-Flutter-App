@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/app/router/go_router_refresh_stream.dart';
 import 'package:yandex_dance/app/shell/main_shell.dart';
+import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/features/auth/presentation/pages/auth_page.dart';
 import 'package:yandex_dance/features/create_event/presentation/screen/create_event_screen.dart';
 import 'package:yandex_dance/features/events/presentation/pages/events_page.dart';
@@ -46,7 +48,11 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/create',
-      builder: (context, state) => const CreateEventScreen(),
+      pageBuilder:
+          (context, state) => _buildCreateEventTransitionPage(
+            state: state,
+            child: const CreateEventScreen(),
+          ),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -89,6 +95,48 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+CustomTransitionPage<void> _buildCreateEventTransitionPage({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 420),
+    reverseTransitionDuration: const Duration(milliseconds: 260),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      final slideAnimation = Tween<Offset>(
+        begin: const Offset(0, 0.08),
+        end: Offset.zero,
+      ).animate(curvedAnimation);
+      final fadeAnimation = Tween<double>(
+        begin: 0.96,
+        end: 1,
+      ).animate(curvedAnimation);
+      final scaleAnimation = Tween<double>(
+        begin: 0.98,
+        end: 1,
+      ).animate(curvedAnimation);
+
+      return ColoredBox(
+        color: AppColors.gray500,
+        child: FadeTransition(
+          opacity: fadeAnimation,
+          child: SlideTransition(
+            position: slideAnimation,
+            child: ScaleTransition(scale: scaleAnimation, child: child),
+          ),
+        ),
+      );
+    },
+  );
+}
 
 String? _redirect(_, GoRouterState state) {
   final location = state.matchedLocation;

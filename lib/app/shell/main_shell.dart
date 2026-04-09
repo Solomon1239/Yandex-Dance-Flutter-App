@@ -124,33 +124,34 @@ class _NavTab extends StatelessWidget {
     final delayMs = 45 * staggerIndex;
 
     return Expanded(
-      child: CustomBounceEffect(
-        onTap: onTap,
-        child: ColoredBox(
-          color: Colors.transparent,
-          child: SizedBox.expand(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SvgIcon(iconPath, size: 24, color: color),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontFamily: 'Outfit',
-                    fontSize: 11,
-                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                    color: color,
-                  ),
+          child: CustomBounceEffect(
+            onTap: onTap,
+            child: ColoredBox(
+              color: Colors.transparent,
+              child: SizedBox.expand(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgIcon(iconPath, size: 24, color: color),
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 11,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w400,
+                        color: color,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
-    )
+        )
         .animate()
         .fadeIn(
           delay: Duration(milliseconds: delayMs),
@@ -185,6 +186,9 @@ class _CreateNavButtonState extends State<_CreateNavButton>
   late final Animation<double> _entranceTurn;
   late final AnimationController _pulseController;
   late final Animation<double> _pulseScale;
+  late final AnimationController _shineController;
+  late final Animation<double> _shineOffset;
+  late final Animation<double> _glowStrength;
 
   @override
   void initState() {
@@ -197,6 +201,10 @@ class _CreateNavButtonState extends State<_CreateNavButton>
       vsync: this,
       duration: const Duration(milliseconds: 2200),
     );
+    _shineController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
 
     final entranceCurve = CurvedAnimation(
       parent: _entranceController,
@@ -204,10 +212,7 @@ class _CreateNavButtonState extends State<_CreateNavButton>
     );
 
     _entranceScale = Tween<double>(begin: 0.72, end: 1).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _entranceController, curve: Curves.easeOutBack),
     );
     _entranceOpacity = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
@@ -217,18 +222,22 @@ class _CreateNavButtonState extends State<_CreateNavButton>
     );
     _entranceSlideY = Tween<double>(begin: 14, end: 0).animate(entranceCurve);
     _entranceTurn = Tween<double>(begin: 0.14, end: 0).animate(
-      CurvedAnimation(
-        parent: _entranceController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _entranceController, curve: Curves.easeOutBack),
     );
-    _pulseScale = Tween<double>(begin: 1, end: 1.072).animate(
+    _pulseScale = Tween<double>(begin: 1, end: 1.09).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _shineOffset = Tween<double>(begin: -50, end: 50).animate(
+      CurvedAnimation(parent: _shineController, curve: Curves.easeInOutCubic),
+    );
+    _glowStrength = Tween<double>(begin: 0.24, end: 0.4).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
     _entranceController.forward().then((_) {
       if (mounted) {
         _pulseController.repeat(reverse: true);
+        _shineController.repeat();
       }
     });
   }
@@ -237,6 +246,7 @@ class _CreateNavButtonState extends State<_CreateNavButton>
   void dispose() {
     _entranceController.dispose();
     _pulseController.dispose();
+    _shineController.dispose();
     super.dispose();
   }
 
@@ -248,6 +258,7 @@ class _CreateNavButtonState extends State<_CreateNavButton>
           animation: Listenable.merge([
             _entranceController,
             _pulseController,
+            _shineController,
           ]),
           builder: (context, child) {
             final entranceDone = _entranceController.isCompleted;
@@ -256,7 +267,7 @@ class _CreateNavButtonState extends State<_CreateNavButton>
             return Opacity(
               opacity: _entranceOpacity.value,
               child: Transform.translate(
-                offset: Offset(0, entranceDone ? 0 : _entranceSlideY.value),
+                offset: Offset(0, entranceDone ? -4 : _entranceSlideY.value),
                 child: Transform.rotate(
                   angle: entranceDone ? 0 : _entranceTurn.value,
                   child: Transform.scale(scale: scale, child: child),
@@ -264,22 +275,84 @@ class _CreateNavButtonState extends State<_CreateNavButton>
               ),
             );
           },
-          child: AppButton(
-            onTap: widget.onTap,
-            icon: AppIcons.create,
-            style: AppButtonStyle(
-              width: 48,
-              height: 48,
-              padding: EdgeInsets.zero,
-              iconSize: 24,
-              iconColor: AppColors.gray0,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [AppColors.purple500, AppColors.pink500],
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.pink500.withValues(
+                        alpha: _glowStrength.value,
+                      ),
+                      blurRadius: 30,
+                      spreadRadius: 4,
+                    ),
+                    BoxShadow(
+                      color: AppColors.purple500.withValues(alpha: 0.2),
+                      blurRadius: 18,
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
               ),
-              border: const AppButtonBorder(borderRadius: 24),
-            ),
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.14),
+                  ),
+                ),
+                child: ClipOval(
+                  child: Stack(
+                    children: [
+                      AppButton(
+                        onTap: widget.onTap,
+                        icon: AppIcons.create,
+                        style: AppButtonStyle(
+                          width: 60,
+                          height: 60,
+                          padding: EdgeInsets.zero,
+                          iconSize: 28,
+                          iconColor: AppColors.gray0,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [AppColors.purple500, AppColors.pink500],
+                          ),
+                          border: const AppButtonBorder(borderRadius: 30),
+                        ),
+                      ),
+                      IgnorePointer(
+                        child: Transform.translate(
+                          offset: Offset(_shineOffset.value, 0),
+                          child: Container(
+                            width: 22,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  Colors.white.withValues(alpha: 0),
+                                  Colors.white.withValues(alpha: 0.42),
+                                  Colors.white.withValues(alpha: 0),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -226,7 +226,7 @@ class _FriendIntroVideoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppButton(
       onTap: () {
-        Navigator.of(context).push<void>(
+        Navigator.of(context, rootNavigator: true).push<void>(
           MaterialPageRoute<void>(
             builder: (_) => VideoPlayerPage(url: videoUrl),
             fullscreenDialog: true,

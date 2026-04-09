@@ -395,7 +395,15 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SectionTitle(title);
+    return DefaultTextStyle.merge(
+      style: const TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.w900,
+        height: 1.05,
+        letterSpacing: -0.4,
+      ),
+      child: SectionTitle(title),
+    );
   }
 }
 

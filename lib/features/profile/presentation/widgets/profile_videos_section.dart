@@ -96,7 +96,7 @@ class _VideoTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppButton(
       onTap: () {
-        Navigator.of(context).push(
+        Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute<void>(
             builder: (_) => VideoPlayerPage(url: videoUrl),
             fullscreenDialog: true,

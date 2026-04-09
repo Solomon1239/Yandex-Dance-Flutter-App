@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
-import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
-import 'package:yandex_dance/core/ui/widgets/buttons/app_button_style.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   const VideoPlayerPage({super.key, required this.url});
@@ -56,10 +55,12 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: SafeArea(
-        child: Stack(
+    final topInset = MediaQuery.paddingOf(context).top;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Stack(
           children: [
             Center(
               child:
@@ -77,6 +78,22 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
+                            Positioned.fill(
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.black.withValues(alpha: 0.22),
+                                      Colors.transparent,
+                                      Colors.black.withValues(alpha: 0.18),
+                                    ],
+                                    stops: const [0, 0.2, 1],
+                                  ),
+                                ),
+                              ),
+                            ),
                             AspectRatio(
                               aspectRatio: _controller.value.aspectRatio,
                               child: VideoPlayer(_controller),
@@ -105,20 +122,26 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       ),
             ),
             Positioned(
-              top: 8,
-              left: 8,
-              child: AppButton(
+              top: topInset + 24,
+              left: 12,
+              child: CustomBounceEffect(
                 onTap: () => Navigator.of(context).pop(),
-                iconWidget: const Icon(
-                  Icons.close_rounded,
-                  color: AppColors.gray0,
-                  size: 28,
-                ),
-                style: const AppButtonStyle(
-                  width: 48,
-                  height: 48,
-                  padding: EdgeInsets.zero,
-                  backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.42),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.close_rounded,
+                    color: AppColors.gray0,
+                    size: 26,
+                  ),
                 ),
               ),
             ),
