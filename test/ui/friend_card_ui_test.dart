@@ -37,7 +37,7 @@ void main() {
       );
 
       await tester.tap(find.text('A'));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(tapped, isTrue);
     });
   });

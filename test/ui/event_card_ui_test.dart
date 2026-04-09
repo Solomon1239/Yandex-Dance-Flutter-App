@@ -41,7 +41,7 @@ void main() {
       );
 
       await tester.tap(find.text('Tappable'));
-      await tester.pump();
+      await tester.pumpAndSettle();
       expect(tapped, isTrue);
     });
   });
