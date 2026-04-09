@@ -17,6 +17,17 @@ class EventRemoteDataSource {
   DocumentReference<Map<String, dynamic>> _doc(String id) =>
       _collection.doc(id);
 
+  bool _isFirestoreNetworkError(FirebaseException e) {
+    switch (e.code) {
+      case 'unavailable':
+      case 'deadline-exceeded':
+      case 'network-request-failed':
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /// Стрим всей коллекции, отсортированной по дате (от ранних к поздних).
   /// Обновляется автоматически при любых изменениях на сервере.
   Stream<List<DanceEventModel>> watchAllEvents() {
@@ -39,8 +50,23 @@ class EventRemoteDataSource {
   }
 
   /// Разовое чтение мероприятия по id. `null` — если документа нет.
+  /// При сетевой ошибке пробует только локальный кеш Firestore.
   Future<DanceEventModel?> getEvent(String eventId) async {
-    final snapshot = await _doc(eventId).get();
+    DocumentSnapshot<Map<String, dynamic>> snapshot;
+    try {
+      snapshot = await _doc(eventId).get();
+    } on FirebaseException catch (e) {
+      if (!_isFirestoreNetworkError(e)) {
+        rethrow;
+      }
+      try {
+        snapshot = await _doc(eventId).get(
+          const GetOptions(source: Source.cache),
+        );
+      } catch (_) {
+        return null;
+      }
+    }
     if (!snapshot.exists || snapshot.data() == null) return null;
     return DanceEventModel.fromDoc(snapshot);
   }

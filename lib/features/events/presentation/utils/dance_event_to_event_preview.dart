@@ -1,6 +1,7 @@
 import 'package:flutter/painting.dart';
 import 'package:intl/intl.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
+import 'package:yandex_dance/core/ui/media/cached_remote_image.dart';
 import 'package:yandex_dance/features/events/domain/entities/dance_event.dart';
 import 'package:yandex_dance/features/events/presentation/models/event_preview.dart';
 
@@ -27,12 +28,9 @@ const _fallbackMapCenterLng = 37.618423;
   );
 }
 
+/// См. [cachedNetworkImageProviderOrNull] — дисковый кеш для URL.
 ImageProvider<Object>? networkImageOrNull(String? url) {
-  final value = url?.trim();
-  if (value == null || value.isEmpty) {
-    return null;
-  }
-  return NetworkImage(value);
+  return cachedNetworkImageProviderOrNull(url);
 }
 
 /// Для открытия [EventDetailsPage] из любого места, где есть [DanceEvent].

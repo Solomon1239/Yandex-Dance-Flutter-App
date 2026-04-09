@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
@@ -71,12 +72,14 @@ class _BottomNavBar extends StatelessWidget {
               label: 'Главная',
               selected: currentIndex == 0,
               onTap: () => onTabSelected(0),
+              staggerIndex: 0,
             ),
             _NavTab(
               iconPath: AppIcons.list,
               label: 'Мероприятия',
               selected: currentIndex == 1,
               onTap: () => onTabSelected(1),
+              staggerIndex: 1,
             ),
             _CreateNavButton(onTap: onCreatePressed),
             _NavTab(
@@ -84,12 +87,14 @@ class _BottomNavBar extends StatelessWidget {
               label: 'Друзья',
               selected: currentIndex == 2,
               onTap: () => onTabSelected(2),
+              staggerIndex: 2,
             ),
             _NavTab(
               iconPath: AppIcons.user,
               label: 'Профиль',
               selected: currentIndex == 3,
               onTap: () => onTabSelected(3),
+              staggerIndex: 3,
             ),
           ],
         ),
@@ -104,16 +109,19 @@ class _NavTab extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.staggerIndex,
   });
 
   final String iconPath;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final int staggerIndex;
 
   @override
   Widget build(BuildContext context) {
     final color = selected ? AppColors.purple500 : AppColors.gray100;
+    final delayMs = 45 * staggerIndex;
 
     return Expanded(
       child: CustomBounceEffect(
@@ -142,34 +150,136 @@ class _NavTab extends StatelessWidget {
           ),
         ),
       ),
-    );
+    )
+        .animate()
+        .fadeIn(
+          delay: Duration(milliseconds: delayMs),
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        )
+        .slideY(
+          begin: 10,
+          end: 0,
+          delay: Duration(milliseconds: delayMs),
+          duration: const Duration(milliseconds: 380),
+          curve: Curves.easeOutCubic,
+        );
   }
 }
 
-class _CreateNavButton extends StatelessWidget {
+class _CreateNavButton extends StatefulWidget {
   const _CreateNavButton({required this.onTap});
 
   final VoidCallback onTap;
 
   @override
+  State<_CreateNavButton> createState() => _CreateNavButtonState();
+}
+
+class _CreateNavButtonState extends State<_CreateNavButton>
+    with TickerProviderStateMixin {
+  late final AnimationController _entranceController;
+  late final Animation<double> _entranceScale;
+  late final Animation<double> _entranceOpacity;
+  late final Animation<double> _entranceSlideY;
+  late final Animation<double> _entranceTurn;
+  late final AnimationController _pulseController;
+  late final Animation<double> _pulseScale;
+
+  @override
+  void initState() {
+    super.initState();
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 620),
+    );
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    );
+
+    final entranceCurve = CurvedAnimation(
+      parent: _entranceController,
+      curve: Curves.easeOutCubic,
+    );
+
+    _entranceScale = Tween<double>(begin: 0.72, end: 1).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+    _entranceOpacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0, 0.5, curve: Curves.easeOut),
+      ),
+    );
+    _entranceSlideY = Tween<double>(begin: 14, end: 0).animate(entranceCurve);
+    _entranceTurn = Tween<double>(begin: 0.14, end: 0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: Curves.easeOutBack,
+      ),
+    );
+    _pulseScale = Tween<double>(begin: 1, end: 1.072).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _entranceController.forward().then((_) {
+      if (mounted) {
+        _pulseController.repeat(reverse: true);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _entranceController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Expanded(
       child: Center(
-        child: AppButton(
-          onTap: onTap,
-          icon: AppIcons.create,
-          style: AppButtonStyle(
-            width: 48,
-            height: 48,
-            padding: EdgeInsets.zero,
-            iconSize: 24,
-            iconColor: AppColors.gray0,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.purple500, AppColors.pink500],
+        child: AnimatedBuilder(
+          animation: Listenable.merge([
+            _entranceController,
+            _pulseController,
+          ]),
+          builder: (context, child) {
+            final entranceDone = _entranceController.isCompleted;
+            final scale =
+                entranceDone ? _pulseScale.value : _entranceScale.value;
+            return Opacity(
+              opacity: _entranceOpacity.value,
+              child: Transform.translate(
+                offset: Offset(0, entranceDone ? 0 : _entranceSlideY.value),
+                child: Transform.rotate(
+                  angle: entranceDone ? 0 : _entranceTurn.value,
+                  child: Transform.scale(scale: scale, child: child),
+                ),
+              ),
+            );
+          },
+          child: AppButton(
+            onTap: widget.onTap,
+            icon: AppIcons.create,
+            style: AppButtonStyle(
+              width: 48,
+              height: 48,
+              padding: EdgeInsets.zero,
+              iconSize: 24,
+              iconColor: AppColors.gray0,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AppColors.purple500, AppColors.pink500],
+              ),
+              border: const AppButtonBorder(borderRadius: 24),
             ),
-            border: const AppButtonBorder(borderRadius: 24),
           ),
         ),
       ),

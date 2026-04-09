@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
@@ -101,18 +102,12 @@ class FriendCard extends StatelessWidget {
       ),
     );
 
-    if (onTap == null) {
+    final callback = onTap;
+    if (callback == null) {
       return card;
     }
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppColors.cardRadius),
-        child: card,
-      ),
-    );
+    return CustomBounceEffect(onTap: callback, child: card);
   }
 }
 

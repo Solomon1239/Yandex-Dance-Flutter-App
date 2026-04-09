@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/media/cached_remote_image.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 import 'package:yandex_dance/core/ui/widgets/buttons/app_button.dart';
@@ -96,9 +97,9 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   ImageProvider<Object>? _eventCoverImage(DanceEvent event) {
-    final url = (event.coverThumbUrl ?? event.coverUrl)?.trim();
-    if (url == null || url.isEmpty) return null;
-    return NetworkImage(url);
+    return cachedNetworkImageProviderOrNull(
+      event.coverThumbUrl ?? event.coverUrl,
+    );
   }
 
   Future<void> _handleMembershipAction(DanceEvent event) async {
@@ -557,7 +558,8 @@ class _ParticipantRow extends StatelessWidget {
         CircleAvatar(
           radius: 18,
           backgroundColor: AppColors.gray400,
-          backgroundImage: hasAvatar ? NetworkImage(avatarUrl) : null,
+          backgroundImage:
+              hasAvatar ? cachedNetworkImageProviderOrNull(avatarUrl) : null,
           child:
               hasAvatar
                   ? null

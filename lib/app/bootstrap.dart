@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
@@ -12,6 +13,16 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Локальный кеш Firestore: офлайн-чтение уже синхронизированных документов;
+  // стримы [snapshots] отдают кеш при потере сети.
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
+  // Сессия Firebase Auth на устройстве сохраняется SDK по умолчанию
+  // (secure storage / Keychain и т.д.).
 
   await configureDependencies();
   await sl<GoogleSignIn>().initialize();

@@ -14,6 +14,17 @@ class ProfileRemoteDataSource {
   DocumentReference<Map<String, dynamic>> _doc(String uid) =>
       _firestore.collection('users').doc(uid);
 
+  bool _isFirestoreNetworkError(FirebaseException e) {
+    switch (e.code) {
+      case 'unavailable':
+      case 'deadline-exceeded':
+      case 'network-request-failed':
+        return true;
+      default:
+        return false;
+    }
+  }
+
   /// Подписка на все профили из коллекции `users`.
   Stream<List<UserProfileModel>> watchAllProfiles() {
     return _firestore
@@ -34,8 +45,23 @@ class ProfileRemoteDataSource {
   }
 
   /// Разовое чтение документа. `null` — если документ не найден.
+  /// При сетевой ошибке пробует только локальный кеш Firestore.
   Future<UserProfileModel?> getProfile(String uid) async {
-    final snapshot = await _doc(uid).get();
+    DocumentSnapshot<Map<String, dynamic>> snapshot;
+    try {
+      snapshot = await _doc(uid).get();
+    } on FirebaseException catch (e) {
+      if (!_isFirestoreNetworkError(e)) {
+        rethrow;
+      }
+      try {
+        snapshot = await _doc(uid).get(
+          const GetOptions(source: Source.cache),
+        );
+      } catch (_) {
+        return null;
+      }
+    }
     if (!snapshot.exists || snapshot.data() == null) return null;
     return UserProfileModel.fromDoc(snapshot);
   }

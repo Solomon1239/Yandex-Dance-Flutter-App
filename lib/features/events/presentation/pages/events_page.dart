@@ -8,6 +8,7 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/media/cached_remote_image.dart';
 import 'package:yandex_dance/core/ui/colors/input_color.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
@@ -137,7 +138,7 @@ class _EventsPageState extends State<EventsPage> {
         dateLabel: _dateFormat.format(event.dateTime),
         locationLabel: event.address,
         authorLabel: authorLabel,
-        authorAvatarImage: _networkImageOrNull(
+        authorAvatarImage: cachedNetworkImageProviderOrNull(
           _creatorAvatarUrls[event.creatorId],
         ),
         currentParticipants: event.currentParticipants,
@@ -147,7 +148,9 @@ class _EventsPageState extends State<EventsPage> {
         description: event.description,
         latitude: coordinates.$1,
         longitude: coordinates.$2,
-        coverImage: _networkImageOrNull(event.coverThumbUrl ?? event.coverUrl),
+        coverImage: cachedNetworkImageProviderOrNull(
+          event.coverThumbUrl ?? event.coverUrl,
+        ),
       );
     }).toList();
   }
@@ -188,14 +191,6 @@ class _EventsPageState extends State<EventsPage> {
             _creatorNamesLoading.remove(creatorId);
           });
     }
-  }
-
-  ImageProvider<Object>? _networkImageOrNull(String? url) {
-    final value = url?.trim();
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    return NetworkImage(value);
   }
 
   (double, double) _coordinatesForEvent(DanceEvent event) {
@@ -433,96 +428,10 @@ class _EventsPageSkeleton extends StatelessWidget {
               viewMode == _EventsViewMode.list
                   ? ListView.separated(
                     itemCount: 3,
-                    separatorBuilder: (_, __) => const SizedBox(height: 18),
-                    itemBuilder: (_, __) => const _EventCardSkeleton(),
+                    separatorBuilder: (_, __) => const SizedBox(height: 16),
+                    itemBuilder: (_, __) => const EventCard(compact: true),
                   )
                   : const _EventsMapSkeleton(),
-        ),
-      ],
-    );
-  }
-}
-
-class _EventCardSkeleton extends StatelessWidget {
-  const _EventCardSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF101010),
-        borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x40000000),
-            blurRadius: 30,
-            offset: Offset(0, 18),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            child: const AspectRatio(
-              aspectRatio: 1.18,
-              child: _SkeletonBox(radius: 0),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _SkeletonBox(height: 28, width: 190, radius: 12),
-                const SizedBox(height: 10),
-                const _SkeletonBox(height: 18, width: 140, radius: 10),
-                const SizedBox(height: 18),
-                const _EventMetaSkeletonRow(),
-                const SizedBox(height: 12),
-                const _EventMetaSkeletonRow(),
-                const SizedBox(height: 12),
-                const _EventMetaSkeletonRow(widthFactor: 0.62),
-                const SizedBox(height: 12),
-                Divider(color: Colors.white.withValues(alpha: 0.1)),
-                const SizedBox(height: 12),
-                Row(
-                  children: const [
-                    _SkeletonCircle(size: 40),
-                    SizedBox(width: 12),
-                    Expanded(child: _SkeletonBox(height: 18, radius: 10)),
-                    SizedBox(width: 12),
-                    _SkeletonBox(width: 36, height: 18, radius: 10),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EventMetaSkeletonRow extends StatelessWidget {
-  const _EventMetaSkeletonRow({this.widthFactor = 0.78});
-
-  final double widthFactor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const _SkeletonBox(width: 20, height: 20, radius: 8),
-        const SizedBox(width: 12),
-        Expanded(
-          child: FractionallySizedBox(
-            alignment: Alignment.centerLeft,
-            widthFactor: widthFactor,
-            child: const _SkeletonBox(height: 18, radius: 10),
-          ),
         ),
       ],
     );
@@ -548,11 +457,7 @@ class _EventsMapSkeleton extends StatelessWidget {
             top: 12,
             child: _SkeletonBox(height: 44, radius: 12),
           ),
-          Positioned(
-            right: 12,
-            bottom: 12,
-            child: _SkeletonCircle(size: 42),
-          ),
+          Positioned(right: 12, bottom: 12, child: _SkeletonCircle(size: 42)),
         ],
       ),
     );
@@ -571,11 +476,7 @@ class _SkeletonCircle extends StatelessWidget {
 }
 
 class _SkeletonBox extends StatelessWidget {
-  const _SkeletonBox({
-    this.width,
-    this.height = 16,
-    this.radius = 12,
-  });
+  const _SkeletonBox({this.width, this.height = 16, this.radius = 12});
 
   final double? width;
   final double height;

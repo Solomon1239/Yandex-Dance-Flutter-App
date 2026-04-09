@@ -18,7 +18,7 @@ class _EventsListView extends StatelessWidget {
 
     return ListView.separated(
       itemCount: events.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 20),
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
       itemBuilder: (context, index) {
         final event = events[index];
 
@@ -32,6 +32,7 @@ class _EventsListView extends StatelessWidget {
           participantsLabel: event.participantsLabel,
           authorAvatarImage: event.authorAvatarImage,
           coverImage: event.coverImage,
+          compact: true,
           onTap: () => onOpenEvent(event),
         );
       },

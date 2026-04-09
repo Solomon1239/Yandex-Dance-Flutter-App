@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:yandex_dance/app/di/service_locator.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
+import 'package:yandex_dance/core/ui/media/cached_remote_image.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/icons/svg_icon.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
@@ -182,7 +183,7 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                           children: [
                             for (var i = 0; i < popularDancers.length; i++) ...[
                               FriendCard(
-                                image: _networkImageOrNull(
+                                image: cachedNetworkImageProviderOrNull(
                                   popularDancers[i].avatarUrl,
                                 ),
                                 name: popularDancers[i].name,
@@ -309,10 +310,12 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
       latitude: coordinates.$1,
       longitude: coordinates.$2,
       description: event.description,
-      authorAvatarImage: _networkImageOrNull(
+      authorAvatarImage: cachedNetworkImageProviderOrNull(
         creatorProfile?.avatarThumbUrl ?? creatorProfile?.avatarUrl,
       ),
-      coverImage: _networkImageOrNull(event.coverThumbUrl ?? event.coverUrl),
+      coverImage: cachedNetworkImageProviderOrNull(
+        event.coverThumbUrl ?? event.coverUrl,
+      ),
     );
   }
 
@@ -370,14 +373,6 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
       return uid;
     }
     return uid.substring(0, 6);
-  }
-
-  ImageProvider<Object>? _networkImageOrNull(String? url) {
-    final value = url?.trim();
-    if (value == null || value.isEmpty) {
-      return null;
-    }
-    return NetworkImage(value);
   }
 
   (double, double) _coordinatesForEvent(DanceEvent event) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/ui/colors/colors.dart';
+import '../../../../core/ui/widgets/custom_bounce_effect.dart';
 import '../../../../core/ui/icons/app_icons.dart';
 import '../../../../core/ui/icons/svg_icon.dart';
 
@@ -49,62 +50,62 @@ class EventCard extends StatelessWidget {
       );
     }
 
-    return Material(
+    final card = Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppColors.cardRadius),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: AppColors.cardSurface,
-            borderRadius: BorderRadius.circular(AppColors.cardRadius),
-            border: Border.all(color: AppColors.cardBorder),
-            boxShadow: AppColors.cardShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _EventCardCover(styleLabel: styleLabel, coverImage: coverImage),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.gray0,
-                        height: 1.1,
-                      ),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _EventCardCover(styleLabel: styleLabel, coverImage: coverImage),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.gray0,
+                      height: 1.1,
                     ),
-                    const SizedBox(height: 18),
-                    _MetaRow(iconPath: AppIcons.calendar, text: dateLabel),
-                    const SizedBox(height: 12),
-                    _MetaRow(iconPath: AppIcons.pin, text: locationLabel),
-                    const SizedBox(height: 12),
-                    _MetaRow(
-                      iconPath: AppIcons.info,
-                      text: 'Возраст: $ageRestrictionLabel',
-                    ),
-                    const SizedBox(height: 12),
-                    Divider(color: Colors.white.withValues(alpha: 0.1)),
-                    const SizedBox(height: 12),
-                    _BottomRow(
-                      authorLabel: authorLabel,
-                      participantsLabel: participantsLabel,
-                      authorAvatarImage: authorAvatarImage,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 18),
+                  _MetaRow(iconPath: AppIcons.calendar, text: dateLabel),
+                  const SizedBox(height: 12),
+                  _MetaRow(iconPath: AppIcons.pin, text: locationLabel),
+                  const SizedBox(height: 12),
+                  _MetaRow(
+                    iconPath: AppIcons.info,
+                    text: 'Возраст: $ageRestrictionLabel',
+                  ),
+                  const SizedBox(height: 12),
+                  Divider(color: Colors.white.withValues(alpha: 0.1)),
+                  const SizedBox(height: 12),
+                  _BottomRow(
+                    authorLabel: authorLabel,
+                    participantsLabel: participantsLabel,
+                    authorAvatarImage: authorAvatarImage,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+
+    final callback = onTap;
+    if (callback == null) {
+      return card;
+    }
+    return CustomBounceEffect(onTap: callback, child: card);
   }
 }
 
@@ -135,78 +136,78 @@ class _CompactEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    final card = Material(
       color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppColors.cardRadius),
-        child: Ink(
-          decoration: BoxDecoration(
-            color: AppColors.cardSurface,
-            borderRadius: BorderRadius.circular(AppColors.cardRadius),
-            border: Border.all(color: AppColors.cardBorder),
-            boxShadow: AppColors.cardShadow,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _CompactCover(coverImage: coverImage),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.gray0,
-                        fontWeight: FontWeight.w800,
-                        height: 1.08,
-                      ),
+      child: Ink(
+        decoration: BoxDecoration(
+          color: AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(AppColors.cardRadius),
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppColors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _CompactCover(coverImage: coverImage),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: AppColors.gray0,
+                      fontWeight: FontWeight.w800,
+                      height: 1.08,
                     ),
-                    const SizedBox(height: 12),
+                  ),
+                  const SizedBox(height: 12),
+                  _CompactMetaRow(
+                    iconPath: AppIcons.calendar,
+                    text: dateLabel,
+                  ),
+                  if (locationLabel.trim().isNotEmpty) ...[
+                    const SizedBox(height: 8),
                     _CompactMetaRow(
-                      iconPath: AppIcons.calendar,
-                      text: dateLabel,
-                    ),
-                    if (locationLabel.trim().isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      _CompactMetaRow(
-                        iconPath: AppIcons.pin,
-                        text: locationLabel,
-                      ),
-                    ],
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        _CompactChip(
-                          label: styleLabel,
-                          textColor: AppColors.purple500,
-                          borderColor: AppColors.purple500.withValues(
-                            alpha: 0.28,
-                          ),
-                          backgroundColor: AppColors.cardChipBackground,
-                        ),
-                        _CompactInfoPill(
-                          iconPath: AppIcons.friends,
-                          label: participantsLabel,
-                        ),
-                      ],
+                      iconPath: AppIcons.pin,
+                      text: locationLabel,
                     ),
                   ],
-                ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _CompactChip(
+                        label: styleLabel,
+                        textColor: AppColors.purple500,
+                        borderColor: AppColors.purple500.withValues(
+                          alpha: 0.28,
+                        ),
+                        backgroundColor: AppColors.cardChipBackground,
+                      ),
+                      _CompactInfoPill(
+                        iconPath: AppIcons.friends,
+                        label: participantsLabel,
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+
+    final callback = onTap;
+    if (callback == null) {
+      return card;
+    }
+    return CustomBounceEffect(onTap: callback, child: card);
   }
 }
 
