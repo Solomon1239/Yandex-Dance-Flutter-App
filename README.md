@@ -1,3 +1,5 @@
+![photo_2026-04-09 10 23 58](https://github.com/user-attachments/assets/410fd928-7690-4d64-92cb-9df7810e76b5)
+
 # Yandex Dance (Flutter)
 
 Мобильное приложение **dance community**: мероприятия, профили танцоров, друзья и создание событий. Клиент на **Flutter** с бэкендом на **Firebase** (Auth, Cloud Firestore, Storage).
