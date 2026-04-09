@@ -16,7 +16,6 @@ import 'package:yandex_dance/core/ui/widgets/city_picker/city_picker_field.dart'
 import 'package:yandex_dance/core/ui/widgets/dance_styles_selector/dance_styles_selector.dart';
 import 'package:yandex_dance/core/ui/widgets/date_picker/date_of_birth_field.dart';
 import 'package:yandex_dance/core/ui/widgets/date_picker/date_of_birth_picker.dart';
-import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/widgets/input/app_text_field.dart';
 import 'package:yandex_dance/core/utils/validators.dart';
 import 'package:yandex_dance/features/profile/presentation/managers/edit_profile_manager.dart';
@@ -177,8 +176,9 @@ class _EditProfilePageState extends State<EditProfilePage>
 
           return Scaffold(
             backgroundColor: AppColors.gray500,
-            body: CustomBounceEffect(
+            body: GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
+              behavior: HitTestBehavior.opaque,
               child: SingleChildScrollView(
                 padding: EdgeInsets.only(
                   left: 24,

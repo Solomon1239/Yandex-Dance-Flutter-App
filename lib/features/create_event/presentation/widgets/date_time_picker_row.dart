@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
-import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 
 class DateTimePickerRow extends StatelessWidget {
@@ -247,32 +246,38 @@ class _CustomDatePickerState extends State<CustomDatePicker> {
             ),
             child: Column(
               children: [
-                CustomBounceEffect(
-                  onTap: () {
-                    Navigator.of(context).pop(dateTime);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'Подтвердить',
-                      textAlign: TextAlign.center,
-                      style: AppTextTheme.body1Medium18pt.copyWith(
-                        color: AppColors.purple500,
-                        decoration: TextDecoration.none,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop(dateTime);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        'Подтвердить',
+                        textAlign: TextAlign.center,
+                        style: AppTextTheme.body1Medium18pt.copyWith(
+                          color: AppColors.purple500,
+                          decoration: TextDecoration.none,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 Container(height: 1, color: AppColors.gray300),
-                CustomBounceEffect(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'Отмена',
-                      style: AppTextTheme.body1Medium18pt.copyWith(
-                        color: AppColors.pink500,
-                        decoration: TextDecoration.none,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        'Отмена',
+                        style: AppTextTheme.body1Medium18pt.copyWith(
+                          color: AppColors.pink500,
+                          decoration: TextDecoration.none,
+                        ),
                       ),
                     ),
                   ),
@@ -375,32 +380,38 @@ class _CustomTimePickerState extends State<CustomTimePicker> {
             ),
             child: Column(
               children: [
-                CustomBounceEffect(
-                  onTap: () {
-                    Navigator.of(context).pop(TimeOfDay.fromDateTime(dateTime));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'Подтвердить',
-                      textAlign: TextAlign.center,
-                      style: AppTextTheme.body1Medium18pt.copyWith(
-                        color: AppColors.purple500,
-                        decoration: TextDecoration.none,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.of(context).pop(TimeOfDay.fromDateTime(dateTime));
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        'Подтвердить',
+                        textAlign: TextAlign.center,
+                        style: AppTextTheme.body1Medium18pt.copyWith(
+                          color: AppColors.purple500,
+                          decoration: TextDecoration.none,
+                        ),
                       ),
                     ),
                   ),
                 ),
                 Container(height: 1, color: AppColors.gray300),
-                CustomBounceEffect(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Text(
-                      'Отмена',
-                      style: AppTextTheme.body1Medium18pt.copyWith(
-                        color: AppColors.pink500,
-                        decoration: TextDecoration.none,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(
+                        'Отмена',
+                        style: AppTextTheme.body1Medium18pt.copyWith(
+                          color: AppColors.pink500,
+                          decoration: TextDecoration.none,
+                        ),
                       ),
                     ),
                   ),

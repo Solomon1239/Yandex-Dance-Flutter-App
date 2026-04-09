@@ -5,7 +5,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:yandex_dance/core/services/geo/city.dart';
 import 'package:yandex_dance/core/services/geo/city_search_service.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
-import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
 
@@ -223,14 +222,18 @@ class _CityPickerFieldState extends State<CityPickerField> {
                 ),
               ),
               if (_controller.text.isNotEmpty)
-                CustomBounceEffect(
-                  onTap: _clear,
-                  child: const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Icon(
-                      Icons.close,
-                      size: 20,
-                      color: AppColors.gray300,
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _clear,
+                    borderRadius: BorderRadius.circular(20),
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Icon(
+                        Icons.close,
+                        size: 20,
+                        color: AppColors.gray300,
+                      ),
                     ),
                   ),
                 ),

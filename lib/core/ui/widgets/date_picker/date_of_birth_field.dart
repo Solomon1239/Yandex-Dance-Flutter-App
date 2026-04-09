@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/icons/app_icons.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
-import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
-
 class DateOfBirthField extends StatelessWidget {
   const DateOfBirthField({
     super.key,
@@ -21,40 +19,44 @@ class DateOfBirthField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasValue = value != null;
-    return CustomBounceEffect(
-      onTap: onTap,
-      child: Container(
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          color: AppColors.gray400.withValues(alpha: 0.70),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.gray300.withValues(alpha: 0.55),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          height: 56,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: AppColors.gray400.withValues(alpha: 0.70),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.gray300.withValues(alpha: 0.55),
+            ),
           ),
-        ),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              AppIcons.calendar,
-              width: 20,
-              height: 20,
-              colorFilter: const ColorFilter.mode(
-                AppColors.gray100,
-                BlendMode.srcIn,
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                AppIcons.calendar,
+                width: 20,
+                height: 20,
+                colorFilter: const ColorFilter.mode(
+                  AppColors.gray100,
+                  BlendMode.srcIn,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              hasValue ? DateFormat('dd.MM.yyyy').format(value!) : hint,
-              style: AppTextTheme.body1Medium18pt.copyWith(
-                color:
-                    hasValue
-                        ? AppColors.gray0
-                        : AppColors.gray100.withValues(alpha: 0.70),
+              const SizedBox(width: 12),
+              Text(
+                hasValue ? DateFormat('dd.MM.yyyy').format(value!) : hint,
+                style: AppTextTheme.body1Medium18pt.copyWith(
+                  color:
+                      hasValue
+                          ? AppColors.gray0
+                          : AppColors.gray100.withValues(alpha: 0.70),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

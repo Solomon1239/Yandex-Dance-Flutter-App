@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:yandex_dance/core/enums/dance_style.dart';
 import 'package:yandex_dance/core/ui/colors/colors.dart';
 import 'package:yandex_dance/core/ui/typography/app_text_theme.dart';
-import 'package:yandex_dance/core/ui/widgets/custom_bounce_effect.dart';
 
 class DanceStylesSelector extends StatelessWidget {
   const DanceStylesSelector({
@@ -46,31 +45,35 @@ class DanceStyleChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomBounceEffect(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          gradient: LinearGradient(
-            colors:
-                isSelected
-                    ? [AppColors.purple500, AppColors.pink500]
-                    : [AppColors.gray400, AppColors.gray400],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            gradient: LinearGradient(
+              colors:
+                  isSelected
+                      ? [AppColors.purple500, AppColors.pink500]
+                      : [AppColors.gray400, AppColors.gray400],
+            ),
+            border: Border.all(
+              color:
+                  isSelected
+                      ? Colors.transparent
+                      : AppColors.gray300.withValues(alpha: 0.55),
+            ),
           ),
-          border: Border.all(
-            color:
-                isSelected
-                    ? Colors.transparent
-                    : AppColors.gray300.withValues(alpha: 0.55),
-          ),
-        ),
-        child: Text(
-          label,
-          style: AppTextTheme.body4Medium16pt.copyWith(
-            color: isSelected ? AppColors.gray0 : AppColors.gray300,
+          child: Text(
+            label,
+            style: AppTextTheme.body4Medium16pt.copyWith(
+              color: isSelected ? AppColors.gray0 : AppColors.gray300,
+            ),
           ),
         ),
       ),

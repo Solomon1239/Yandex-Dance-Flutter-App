@@ -109,11 +109,70 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                   );
                 }
 
+                final screenW = MediaQuery.sizeOf(context).width;
+                // Ширина контента с учётом padding SingleChildScrollView (16+16) и
+                // небольшого «хвоста» следующей карточки при горизонтальном скролле.
+                final dancerCardWidth = (screenW - 32 - 24).clamp(260.0, 340.0);
+
                 return SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const _SectionHeader(title: 'Популярные танцоры'),
+                      const SizedBox(height: 16),
+                      if (profilesLoading)
+                        const _SectionPlaceholder(
+                          iconPath: AppIcons.user,
+                          text: 'Загружаем танцоров...',
+                        )
+                      else if (profilesSnapshot.hasError)
+                        const _SectionPlaceholder(
+                          iconPath: AppIcons.user,
+                          text: 'Не удалось загрузить профили танцоров',
+                        )
+                      else if (popularDancers.isEmpty)
+                        const _SectionPlaceholder(
+                          iconPath: AppIcons.user,
+                          text: 'Танцоры появятся после участия в мероприятиях',
+                        )
+                      else
+                        SizedBox(
+                          height: 86,
+                          child: ListView.separated(
+                            scrollDirection: Axis.horizontal,
+                            clipBehavior: Clip.none,
+                            itemCount: popularDancers.length,
+                            separatorBuilder:
+                                (_, __) => const SizedBox(width: 12),
+                            itemBuilder: (context, i) {
+                              final d = popularDancers[i];
+                              return SizedBox(
+                                width: dancerCardWidth,
+                                child: FriendCard(
+                                  compact: true,
+                                  image: cachedNetworkImageProviderOrNull(
+                                    d.avatarUrl,
+                                  ),
+                                  name: d.name,
+                                  showImageBadge: false,
+                                  headerBadgeLabel: _formatDancerBadge(
+                                    d.eventsCount,
+                                  ),
+                                  styleName: d.stylesLabel,
+                                  description: d.description,
+                                  onTap: () => _openDancerDetails(d.uid),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: 28),
+                      Divider(
+                        color: AppColors.gray300.withValues(alpha: 0.25),
+                        height: 1,
+                      ),
+                      const SizedBox(height: 28),
                       const _SectionHeader(title: 'Популярные мероприятия'),
                       const SizedBox(height: 16),
                       if (popularEvents.isEmpty)
@@ -149,54 +208,6 @@ class _UpcomingEventsPageState extends State<UpcomingEventsPage> {
                                     ),
                               ),
                               if (i != popularEvents.length - 1)
-                                const SizedBox(height: 16),
-                            ],
-                          ],
-                        ),
-                      const SizedBox(height: 28),
-                      Divider(
-                        color: AppColors.gray300.withValues(alpha: 0.25),
-                        height: 1,
-                      ),
-                      const SizedBox(height: 28),
-                      const _SectionHeader(title: 'Популярные танцоры'),
-                      const SizedBox(height: 16),
-                      if (profilesLoading)
-                        const _SectionPlaceholder(
-                          iconPath: AppIcons.user,
-                          text: 'Загружаем танцоров...',
-                        )
-                      else if (profilesSnapshot.hasError)
-                        const _SectionPlaceholder(
-                          iconPath: AppIcons.user,
-                          text: 'Не удалось загрузить профили танцоров',
-                        )
-                      else if (popularDancers.isEmpty)
-                        const _SectionPlaceholder(
-                          iconPath: AppIcons.user,
-                          text: 'Танцоры появятся после участия в мероприятиях',
-                        )
-                      else
-                        Column(
-                          children: [
-                            for (var i = 0; i < popularDancers.length; i++) ...[
-                              FriendCard(
-                                image: cachedNetworkImageProviderOrNull(
-                                  popularDancers[i].avatarUrl,
-                                ),
-                                name: popularDancers[i].name,
-                                showImageBadge: false,
-                                headerBadgeLabel: _formatDancerBadge(
-                                  popularDancers[i].eventsCount,
-                                ),
-                                styleName: popularDancers[i].stylesLabel,
-                                description: popularDancers[i].description,
-                                onTap:
-                                    () => _openDancerDetails(
-                                      popularDancers[i].uid,
-                                    ),
-                              ),
-                              if (i != popularDancers.length - 1)
                                 const SizedBox(height: 16),
                             ],
                           ],
